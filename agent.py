@@ -6,12 +6,13 @@ import shutil
 DOC_PROMPT = """
 You are an AI Documentation Agent. Your task is to create developer-friendly and non-technical-friendly documentation for the #file:cloned_repo project repository.
 
-1. ./docs/index.md -> Overview, tools used, audience, and links to all docs
+1. ./docs/index.md -> Overview, tools used, overall explanation of how this project is laid up, and links to all docs
 2. ./docs/architecture.md -> System architecture, flow diagrams
 3. ./docs/database.md -> Supported DBs, ERD, table descriptions
 4. ./docs/classes.md -> Classes, UML diagram, plain English explanation
 5. ./docs/web.md -> REST API endpoints, pages, navigation flow
 6. Ensure readability for both devs and non-tech users
+Instead of giving one-liner descriptions, provide detailed explanations with examples where applicable.
 """
 
 
@@ -150,6 +151,13 @@ if __name__ == "__main__":
 
     if repo_path:
         generate_docs(repo_path)
-        input("\n⚡ Press Enter after feeding this prompt to your LLM...")
         show_prompt()
+        input("\n⚡ Press Enter after feeding this prompt to your LLM...")
+        # Delete the cloned_repo folder after documentation is created
+        try:
+            if os.path.exists(repo_path):
+                shutil.rmtree(repo_path, ignore_errors=True)
+                print(f"🗑️ Deleted cloned repository folder: {repo_path}")
+        except Exception as e:
+            print(f"⚠️ Warning: Could not delete cloned repository folder: {e}")
         print("\n🎉 Documentation generation completed successfully!")
