@@ -1,6 +1,7 @@
 import os
 import subprocess
 import shutil
+from atlassian import Confluence
 
 # Enhanced documentation prompt
 DOC_PROMPT = """
@@ -12,6 +13,9 @@ You are an AI Documentation Agent. Your task is to create developer-friendly and
 4. ./docs/classes.md -> Classes, UML diagram, plain English explanation
 5. ./docs/web.md -> REST API endpoints, pages, navigation flow
 6. Ensure readability for both devs and non-tech users
+
+Thes Docs are already created with placeholders. Your job is to fill in the content based on the codebase analysis.
+
 Instead of giving one-liner descriptions, provide detailed explanations with examples where applicable.
 """
 
@@ -25,7 +29,7 @@ def clone_repo(repo_url, dest_folder="cloned_repo"):
                 subprocess.run(
                     ["attrib", "-R", dest_folder + "\\*.*", "/S"], check=False
                 )
-            shutil.rmtree(dest_folder, ignore_errors=True)
+            shutil.rmtree(dest_folder)
         except Exception as e:
             print(f"⚠️ Warning: Could not completely remove old directory: {e}")
             # If removal failed, try with a new name
@@ -44,6 +48,49 @@ def clone_repo(repo_url, dest_folder="cloned_repo"):
         print("❌ Error cloning repository:", e)
         return None
 
+
+def publish_to_confluence(confluence_url, space_key, docs_folder, username, api_token):
+    confluence = Confluence(
+        url=confluence_url,
+        username=username,
+        password=api_token  # API token, not password
+    )
+
+    parent_page_id = None
+
+    for filename in os.listdir(docs_folder):
+        if filename.endswith(".md"):
+            file_path = os.path.join(docs_folder, filename)
+            with open(file_path, "r", encoding="utf-8") as f:
+                content = f.read()
+
+            page_title = filename.replace(".md", "").capitalize()
+
+            if filename == "index.md":
+                # Create the root/parent page
+                parent_page = confluence.create_page(
+                    space=space_key,
+                    title=page_title,
+                    body=content,
+                    type="page",
+                    representation="wiki"
+                )
+                parent_page_id = parent_page["id"]
+                print(f"📤 Published parent page: {page_title} (ID: {parent_page_id})")
+            else:
+                # Create child pages under index.md
+                if parent_page_id:
+                    confluence.create_page(
+                        space=space_key,
+                        title=page_title,
+                        body=content,
+                        parent_id=parent_page_id,
+                        type="page",
+                        representation="wiki"
+                    )
+                    print(f"📤 Published child page: {page_title} under parent {parent_page_id}")
+                else:
+                    print(f"⚠️ Skipped {page_title}, parent page not found yet!")
 
 def show_prompt():
     print("\n📄 Documentation Generation Prompt:")
@@ -161,3 +208,10 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"⚠️ Warning: Could not delete cloned repository folder: {e}")
         print("\n🎉 Documentation generation completed successfully!")
+
+        confluence_url = "https://barathsundar03.atlassian.net/wiki"
+        space_key = "~712020b66a49d1b1b44a6d9b897ba1631b9b7f"
+        username = "barathsundar03@gmail.com"
+        api_token = 
+        docs_folder = os.path.join(os.path.dirname(repo_path), "docs")
+        publish_to_confluence(confluence_url, space_key, docs_folder, username, api_token)
