@@ -1,91 +1,125 @@
-# The Wild Oasis Hotel Management System
+# The Wild Oasis - Project Overview
 
 ## Purpose
-The Wild Oasis is a comprehensive hotel management system designed to streamline operations for boutique hotels. This modern web application helps hotel staff efficiently manage cabin bookings, guest information, and daily operations through an intuitive dashboard interface.
+The Wild Oasis is a comprehensive hotel management system designed to streamline the operations of a cabin rental business. It provides a modern, user-friendly interface for managing bookings, cabins, guests, and business analytics.
 
-## Target Audience
-### Hotel Staff (Non-Technical Users)
-- Reception staff managing bookings and check-ins
-- Managers monitoring performance metrics
-- Administrative staff handling cabin management
-- Support staff updating hotel settings
-
-### Developers
-- Frontend developers maintaining and extending the application
-- Backend developers working with Supabase integration
-- DevOps engineers handling deployment and maintenance
-- QA engineers testing new features
-
-## Key Features
-- 🏠 **Cabin Management**: Add, edit, and remove cabin listings with photos and detailed information
-- 📅 **Booking System**: Handle reservations and check-in/check-out processes
-- 👥 **Guest Management**: Track guest information and booking history
-- 📊 **Dashboard**: Real-time statistics and booking analytics
-- ⚙️ **Settings Management**: Customize hotel settings and pricing
-- 🔐 **User Authentication**: Secure staff access with role-based permissions
+### Key Features
+- 🏨 **Cabin Management**: Add, edit, and delete cabin listings with details like pricing, capacity, and amenities
+- 📅 **Booking System**: Handle reservations, check-ins, and check-outs efficiently
+- 📊 **Dashboard Analytics**: Track occupancy rates, sales, and other key business metrics
+- 👥 **Guest Management**: Maintain guest records and booking history
+- 🔒 **User Authentication**: Secure staff accounts with role-based access
+- 🌓 **Dark/Light Mode**: Support for both dark and light themes
+- ⚙️ **Settings Management**: Customize application settings like booking rules
 
 ## Technology Stack
-### Frontend
-- **React 18**: Core framework for building the user interface
-- **Styled Components**: For component-level styling with dynamic theming
-- **React Query**: Data fetching and state management
-- **React Hook Form**: Form handling and validation
-- **Recharts**: Data visualization for analytics
-- **React Hot Toast**: User notifications
-- **React Icons**: Icon library
 
-### Backend & Database
-- **Supabase**: Backend as a Service (BaaS) providing:
+### Frontend Framework
+- **React 18**: Modern UI development with functional components and hooks
+- **Vite**: Fast and efficient build tooling
+- **React Router DOM**: Client-side routing and navigation
+
+### State Management & Data Fetching
+- **@tanstack/react-query**: Server state management and caching
+- **React Context**: Global application state management
+- **React Hook Form**: Form handling and validation
+
+### UI/UX Components
+- **Styled Components**: CSS-in-JS styling solution
+- **React Icons**: Icon library
+- **React Hot Toast**: Toast notifications
+- **Recharts**: Data visualization for analytics
+
+### Backend Services
+- **Supabase**: Backend-as-a-Service (BaaS) providing:
   - PostgreSQL database
   - Authentication
   - File storage
-  - Real-time subscriptions
+  - Real-time capabilities
 
 ## Project Structure
 ```
 src/
-├── features/          # Feature-specific components and logic
-│   ├── authentication/  # Login, signup, user management
-│   ├── bookings/       # Booking-related features
-│   ├── cabins/         # Cabin management
-│   ├── dashboard/      # Analytics and statistics
-│   └── settings/       # Application settings
-├── services/         # API and external service integrations
-├── hooks/            # Custom React hooks
-├── ui/              # Reusable UI components
-├── utils/           # Helper functions and constants
-├── styles/          # Global styles and theme
-└── context/         # React Context providers
+├── assets/          # Static assets (images, icons)
+├── context/         # React Context providers
+├── features/        # Feature modules
+│   ├── authentication/  # Auth-related components
+│   ├── bookings/       # Booking management
+│   ├── cabins/        # Cabin management
+│   ├── dashboard/     # Analytics dashboard
+│   └── settings/      # App settings
+├── hooks/           # Custom React hooks
+├── pages/           # Page components
+├── services/        # API and external services
+├── styles/          # Global styles
+├── ui/             # Reusable UI components
+└── utils/           # Utility functions
 ```
 
 ## Getting Started
-1. Clone the repository
-2. Install dependencies: `npm install`
-3. Set up environment variables:
+
+### Prerequisites
+- Node.js 16 or higher
+- npm or yarn package manager
+- Supabase account for backend services
+
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-username/the-wild-oasis.git
    ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Configure environment variables:
+   ```env
    VITE_SUPABASE_URL=your_supabase_url
    VITE_SUPABASE_KEY=your_supabase_anon_key
    ```
-4. Run development server: `npm run dev`
+
+4. Start development server:
+   ```bash
+   npm run dev
+   ```
 
 ## Documentation Sections
-- [System Architecture](architecture.md): Detailed system design, component interactions, and data flow diagrams
-- [Database Schema](database.md): Data structure, relationships, and Supabase integration details
-- [Component Documentation](classes.md): In-depth documentation of components, hooks, and utilities
-- [Web Interface](web.md): API endpoints, pages structure, and navigation flow
 
-## Development Guidelines
-- Use consistent code formatting (ESLint and Prettier configured)
-- Follow component-based architecture
-- Implement proper error handling
-- Write meaningful commit messages
-- Keep dependencies updated
+### For Developers
+1. [Architecture](architecture.md): System design, component interactions, and data flow
+2. [Database](database.md): Database schema, relationships, and queries
+3. [Classes](classes.md): Component structure, hooks, and implementation details
+4. [Web](web.md): API endpoints, routing, and state management
 
-## Contribution
+### For Non-Technical Users
+- Start with the Features section above
+- Focus on the Functionality descriptions in each document
+- Refer to UI/UX sections for interface understanding
+
+## Support and Resources
+
+### Documentation
+- [React Documentation](https://react.dev)
+- [Supabase Documentation](https://supabase.io/docs)
+- [Styled Components Documentation](https://styled-components.com/docs)
+
+### Help and Support
+- For technical issues: Open an issue in the GitHub repository
+- For usage questions: Contact system administrator
+- For feature requests: Submit through the project management system
+
+## Contributing
 1. Fork the repository
 2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
-## Support
-For technical support or feature requests, please create an issue in the repository.
+## License
+This project is proprietary and confidential.
+
+---
+
+This documentation is maintained by the development team and updated regularly. For questions or suggestions, please contact the documentation team.

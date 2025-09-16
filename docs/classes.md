@@ -1,269 +1,390 @@
-# Components and Hooks Documentation
+# The Wild Oasis - Components and Classes Documentation
 
-## Core Components
+## Overview
 
-### 1. Authentication Components
+The Wild Oasis application is built using React functional components with a feature-based architecture. This document provides a detailed breakdown of the components, their relationships, and implementation patterns.
 
-#### `LoginForm` Component
-Location: `features/authentication/LoginForm.jsx`
+## Component Hierarchy
+
 ```mermaid
 classDiagram
-    class LoginForm {
-        +State email: string
-        +State password: string
-        +Function handleSubmit()
-        +Function handleInputChange()
-        +Render() JSX
+    class App {
+        +render()
+        -queryClient
+        -router
     }
+    class AppLayout {
+        +render()
+        -header
+        -sidebar
+        -main
+    }
+    class ProtectedRoute {
+        +render()
+        -isAuthenticated
+        -redirectTo
+    }
+    class DarkModeProvider {
+        +isDarkMode
+        +toggleDarkMode()
+    }
+    
+    App --> DarkModeProvider
+    App --> ProtectedRoute
+    ProtectedRoute --> AppLayout
+    
+    class BookingTable {
+        +bookings[]
+        +isLoading
+        +onCheckIn()
+        +onDelete()
+    }
+    class BookingRow {
+        +booking
+        +onCheckIn
+        +onDelete
+    }
+    BookingTable --> BookingRow
+    
+    class CabinTable {
+        +cabins[]
+        +isLoading
+        +onEdit()
+        +onDelete()
+    }
+    class CabinRow {
+        +cabin
+        +onEdit
+        +onDelete
+    }
+    CabinTable --> CabinRow
 ```
-**Purpose**: Handles user authentication with email/password login.
-**Key Features**:
-- Form validation
-- Error handling
-- Success notifications
-- Protected route redirection
 
-#### `UserAvatar` Component
-Location: `features/authentication/UserAvatar.jsx`
-```mermaid
-classDiagram
-    class UserAvatar {
-        +Prop user: Object
-        +State imageUrl: string
-        +Function handleImageError()
-        +Render() JSX
-    }
+## Feature Modules
+
+### 1. Authentication Module
+
+#### LoginForm Component
+```jsx
+function LoginForm() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const { login, isLoading } = useLogin();
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    await login({ email, password });
+  }
+
+  return (
+    <Form onSubmit={handleSubmit}>
+      <FormRow label="Email">
+        <Input type="email" value={email} onChange={...} />
+      </FormRow>
+      <FormRow label="Password">
+        <Input type="password" value={password} onChange={...} />
+      </FormRow>
+      <Button disabled={isLoading}>Log In</Button>
+    </Form>
+  );
+}
 ```
-**Purpose**: Displays user profile image with fallback.
+
+**Plain English Explanation:**
+- A form component for user authentication
+- Takes email and password inputs
+- Handles form submission and loading states
+- Shows error messages if login fails
 
 ### 2. Booking Management
 
-#### `BookingTable` Component
-Location: `features/bookings/BookingTable.jsx`
-```mermaid
-classDiagram
-    class BookingTable {
-        +State sortBy: string
-        +State filterBy: string
-        +Function handleSort()
-        +Function handleFilter()
-        +Render() JSX
-    }
-```
-**Purpose**: Displays and manages booking records.
-**Features**:
-- Sorting by multiple fields
-- Filtering capabilities
-- Pagination
-- Action buttons for each booking
+#### BookingTable Component
+```jsx
+function BookingTable() {
+  const { bookings, isLoading } = useBookings();
+  const [searchParams] = useSearchParams();
 
-#### `BookingDetail` Component
-Location: `features/bookings/BookingDetail.jsx`
-```mermaid
-classDiagram
-    class BookingDetail {
-        +Prop bookingId: string
-        +State booking: Object
-        +Function handleCheckIn()
-        +Function handleCheckOut()
-        +Render() JSX
-    }
+  // Filter bookings based on status
+  const filterValue = searchParams.get("status") || "all";
+  const filteredBookings = filterBookings(bookings, filterValue);
+
+  // Sort bookings
+  const sortBy = searchParams.get("sortBy") || "startDate-desc";
+  const sortedBookings = sortBookings(filteredBookings, sortBy);
+
+  return (
+    <Table>
+      <TableHeader>...</TableHeader>
+      <TableBody>
+        {sortedBookings.map(booking => (
+          <BookingRow key={booking.id} booking={booking} />
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
 ```
-**Purpose**: Shows detailed booking information.
+
+**Plain English Explanation:**
+- Displays a list of all bookings in a table format
+- Supports filtering by booking status
+- Allows sorting by different criteria
+- Each booking is displayed in its own row
 
 ### 3. Cabin Management
 
-#### `CabinTable` Component
-Location: `features/cabins/CabinTable.jsx`
-```mermaid
-classDiagram
-    class CabinTable {
-        +State cabins: Array
-        +Function handleDelete()
-        +Function handleEdit()
-        +Render() JSX
-    }
-```
-**Purpose**: Manages cabin listings.
-**Features**:
-- CRUD operations for cabins
-- Image upload
-- Price management
-- Availability status
+#### AddCabin Component
+```jsx
+function AddCabin() {
+  const { register, handleSubmit, reset, formState } = useForm();
+  const { createCabin, isCreating } = useCreateCabin();
 
-### 4. Dashboard Components
+  function onSubmit(data) {
+    const image = data.image[0];
+    createCabin({ ...data, image }, {
+      onSuccess: () => {
+        reset();
+        toast.success("Cabin created successfully");
+      }
+    });
+  }
 
-#### `DashboardStats` Component
-Location: `features/dashboard/DashboardStats.jsx`
-```mermaid
-classDiagram
-    class DashboardStats {
-        +State timeframe: string
-        +State stats: Object
-        +Function fetchStats()
-        +Render() JSX
-    }
+  return (
+    <Form onSubmit={handleSubmit(onSubmit)}>
+      <FormRow label="Cabin Name">
+        <Input {...register("name", { required: true })} />
+      </FormRow>
+      {/* Other form fields */}
+    </Form>
+  );
+}
 ```
-**Purpose**: Displays key performance metrics.
+
+**Plain English Explanation:**
+- Form for adding new cabins to the system
+- Handles file uploads for cabin images
+- Validates form inputs
+- Shows success/error messages
+- Resets form after successful submission
 
 ## Custom Hooks
 
-### 1. Authentication Hooks
+### 1. useBookings Hook
+```typescript
+interface Booking {
+  id: number;
+  startDate: Date;
+  endDate: Date;
+  status: string;
+  // ... other fields
+}
 
-#### `useLogin` Hook
-Location: `features/authentication/useLogin.js`
-```javascript
-const useLogin = () => {
-  const { mutate: login, isLoading } = useMutation({
-    mutationFn: ({ email, password }) => loginApi(email, password),
-    onSuccess: (user) => {
-      queryClient.setQueryData(['user'], user);
-      navigate('/dashboard');
-    },
-  });
+function useBookings() {
+  const queryClient = useQueryClient();
   
-  return { login, isLoading };
-};
-```
-**Purpose**: Manages login functionality with error handling.
-
-#### `useUser` Hook
-Location: `features/authentication/useUser.js`
-```javascript
-const useUser = () => {
-  const { data: user, isLoading } = useQuery({
-    queryKey: ['user'],
-    queryFn: getCurrentUser,
+  const {
+    data: bookings,
+    isLoading,
+    error
+  } = useQuery<Booking[]>({
+    queryKey: ['bookings'],
+    queryFn: getBookings
   });
-  
-  return { user, isLoading, isAuthenticated: user?.role === 'authenticated' };
-};
-```
-**Purpose**: Provides current user context throughout the app.
 
-### 2. Booking Hooks
-
-#### `useBookings` Hook
-Location: `features/bookings/useBookings.js`
-```javascript
-const useBookings = ({ filter, sortBy, page }) => {
-  const { data, isLoading } = useQuery({
-    queryKey: ['bookings', filter, sortBy, page],
-    queryFn: () => getBookings({ filter, sortBy, page }),
+  const { mutate: createBooking } = useMutation({
+    mutationFn: createBookingApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries(['bookings']);
+      toast.success('Booking created!');
+    }
   });
-  
-  return { bookings: data?.data, count: data?.count, isLoading };
-};
+
+  return { bookings, isLoading, error, createBooking };
+}
 ```
-**Purpose**: Fetches and manages booking data with filtering and pagination.
 
-### 3. UI Hooks
+**Plain English Explanation:**
+- Custom hook for managing booking data
+- Fetches bookings from the server
+- Provides functions to create new bookings
+- Handles loading and error states
+- Automatically updates the UI when data changes
 
-#### `useOutsideClick` Hook
-Location: `hooks/useOutsideClick.js`
+### 2. useDarkMode Hook
 ```javascript
-const useOutsideClick = (handler, listenCapturing = true) => {
-  const ref = useRef();
+function useDarkMode() {
+  const [isDarkMode, setIsDarkMode] = useLocalStorageState(
+    'isDarkMode',
+    window.matchMedia('(prefers-color-scheme: dark)').matches
+  );
 
   useEffect(() => {
-    function handleClick(e) {
-      if (ref.current && !ref.current.contains(e.target)) {
-        handler();
-      }
-    }
+    document.documentElement.classList.toggle('dark-mode', isDarkMode);
+  }, [isDarkMode]);
 
-    document.addEventListener('click', handleClick, listenCapturing);
-    return () => document.removeEventListener('click', handleClick, listenCapturing);
-  }, [handler, listenCapturing]);
+  return {
+    isDarkMode,
+    toggleDarkMode: () => setIsDarkMode(mode => !mode)
+  };
+}
+```
 
-  return ref;
+**Plain English Explanation:**
+- Manages the application's dark mode state
+- Persists preference in localStorage
+- Automatically detects system preference
+- Updates document classes when mode changes
+
+## UI Components
+
+### 1. Modal Component
+```jsx
+const Modal = createContext();
+
+function Modal({ children }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <Modal.Provider value={{ isOpen, open, close }}>
+      {children}
+    </Modal.Provider>
+  );
+}
+
+Modal.Open = function Open({ children }) {
+  const { open } = useContext(Modal);
+  return cloneElement(children, { onClick: () => open() });
+};
+
+Modal.Window = function Window({ children }) {
+  const { isOpen, close } = useContext(Modal);
+  return createPortal(
+    <Overlay>
+      <StyledModal>
+        <Button onClick={close}>&times;</Button>
+        {children}
+      </StyledModal>
+    </Overlay>,
+    document.body
+  );
 };
 ```
-**Purpose**: Handles clicks outside a component, useful for modals and dropdowns.
 
-## Utility Functions
+**Plain English Explanation:**
+- Reusable modal dialog component
+- Uses React Context for state management
+- Supports compound components pattern
+- Renders using a portal for proper stacking
 
-### 1. Date Utilities
-Location: `utils/helpers.js`
-```javascript
-export const formatDate = (date) => 
-  new Intl.DateTimeFormat('en', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(date));
-
-export const subtractDates = (date1, date2) => 
-  Math.round(Math.abs(date1 - date2) / (1000 * 60 * 60 * 24));
+### 2. Table Component
+```jsx
+function Table({ columns, data, onRowClick }) {
+  return (
+    <TableWrapper>
+      <TableHeader>
+        {columns.map(column => (
+          <th key={column.key}>{column.label}</th>
+        ))}
+      </TableHeader>
+      <TableBody>
+        {data.map(row => (
+          <TableRow key={row.id} onClick={() => onRowClick?.(row)}>
+            {columns.map(column => (
+              <td key={column.key}>
+                {column.render ? column.render(row) : row[column.key]}
+              </td>
+            ))}
+          </TableRow>
+        ))}
+      </TableBody>
+    </TableWrapper>
+  );
+}
 ```
 
-### 2. Currency Formatting
-Location: `utils/helpers.js`
-```javascript
-export const formatCurrency = (value) => 
-  new Intl.NumberFormat('en', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(value);
+**Plain English Explanation:**
+- Generic table component
+- Supports custom column rendering
+- Handles row click events
+- Flexible data display
+
+## Form Components
+
+### 1. Form Row
+```jsx
+function FormRow({ label, error, children }) {
+  return (
+    <StyledFormRow>
+      <Label htmlFor={children.props.id}>{label}</Label>
+      {children}
+      {error && <Error>{error}</Error>}
+    </StyledFormRow>
+  );
+}
 ```
 
-## Styled Components
-
-### 1. Common UI Components
-
-#### `Button` Component
-Location: `ui/Button.jsx`
-```javascript
-const Button = styled.button`
-  border: none;
-  border-radius: var(--border-radius-sm);
-  box-shadow: var(--shadow-sm);
-  padding: 1.2rem 1.6rem;
-  font-weight: 500;
-  color: var(--color-brand-50);
-  background-color: var(--color-brand-600);
-  
-  &:hover {
-    background-color: var(--color-brand-700);
-  }
-`;
-```
-
-#### `Modal` Component
-Location: `ui/Modal.jsx`
-```javascript
-const StyledModal = styled.div`
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+### 2. Input
+```jsx
+const Input = styled.input`
+  border: 1px solid var(--color-grey-300);
   background-color: var(--color-grey-0);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-lg);
-  padding: 3.2rem 4rem;
-  transition: all 0.5s;
+  border-radius: var(--border-radius-sm);
+  padding: 0.8rem 1.2rem;
+  box-shadow: var(--shadow-sm);
 `;
 ```
 
-## Component Interaction Examples
+## Best Practices
 
-### 1. Booking Flow
-```mermaid
-sequenceDiagram
-    BookingTable->>+BookingDetail: Select Booking
-    BookingDetail->>+useBooking: Fetch Details
-    useBooking->>+ApiService: API Request
-    ApiService-->>-useBooking: Booking Data
-    useBooking-->>-BookingDetail: Update UI
-    BookingDetail-->>-BookingTable: Show Details
+### 1. Component Organization
+- Keep components focused and single-responsibility
+- Use feature-based folder structure
+- Separate business logic from UI components
+
+### 2. State Management
+- Use React Query for server state
+- Use Context for global UI state
+- Keep component state local when possible
+
+### 3. Error Handling
+- Implement error boundaries
+- Show user-friendly error messages
+- Log errors for debugging
+
+### 4. Performance
+- Memoize expensive computations
+- Use pagination for large lists
+- Implement proper loading states
+
+## Testing Strategy
+
+### 1. Unit Tests
+```javascript
+describe('BookingRow', () => {
+  it('should display booking details', () => {
+    const booking = {
+      id: 1,
+      startDate: '2023-09-15',
+      guestName: 'John Doe'
+    };
+    render(<BookingRow booking={booking} />);
+    expect(screen.getByText('John Doe')).toBeInTheDocument();
+  });
+});
 ```
 
-### 2. Authentication Flow
-```mermaid
-sequenceDiagram
-    LoginForm->>+useLogin: Submit Credentials
-    useLogin->>+ApiService: Login Request
-    ApiService-->>-useLogin: JWT Token
-    useLogin->>+useUser: Update User Context
-    useUser-->>-LoginForm: Redirect to Dashboard
+### 2. Integration Tests
+```javascript
+describe('BookingFlow', () => {
+  it('should create a new booking', async () => {
+    render(<BookingForm />);
+    // Fill form
+    // Submit
+    // Assert success
+  });
+});
 ```
+
+---
+
+This documentation is maintained alongside the component code. For specific implementation details, refer to the individual component files in the source code.
