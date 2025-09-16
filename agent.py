@@ -3,7 +3,7 @@ import subprocess
 import shutil
 import re
 import markdown
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup ,CData
 from atlassian import Confluence
 
 #playwright need to be installed
@@ -21,6 +21,7 @@ You are an AI Documentation Agent. Your task is to create developer-friendly and
 
 Thes Docs are already created with placeholders. Your job is to fill in the content based on the codebase analysis.
 
+After the code snippets, provide some defintitions used in that code snippet.
 Instead of giving one-liner descriptions, provide detailed explanations with examples where applicable.
 """
 
@@ -98,24 +99,32 @@ def md_to_confluence_storage(md_content: str) -> str:
     # Handle fenced code blocks
     for pre in soup.find_all("pre"):
         code = pre.code
-        if code and code.has_attr("class"):
-            lang_classes = code["class"]
+        if code:
+            lang = None
+            if code.has_attr("class"):
+                classes = code["class"]
+                lang = classes[0].replace("language-", "") if classes else None
 
             # Skip mermaid/plantuml (handled earlier)
-            if "language-mermaid" in lang_classes or "language-plantuml" in lang_classes:
+            if lang in ("mermaid", "plantuml"):
                 continue
 
-            # Other code blocks → wrap in Confluence <ac:structured-macro>
-            code_block = soup.new_tag("ac:structured-macro", **{"ac:name": "code"})
-            param = soup.new_tag("ac:parameter", **{"ac:name": "language"})
-            param.string = lang_classes[0].replace("language-", "")
-            code_macro_body = soup.new_tag("ac:plain-text-body")
-            code_macro_body.string = code.get_text()
-            code_block.append(param)
-            code_block.append(code_macro_body)
-            pre.replace_with(code_block)
+            # Build Confluence macro
+            code_macro = soup.new_tag("ac:structured-macro", **{"ac:name": "code"})
+            if lang:
+                param = soup.new_tag("ac:parameter", **{"ac:name": "language"})
+                param.string = lang
+                code_macro.append(param)
+
+            # Add plain-text-body with **CDATA preserved**
+            body = soup.new_tag("ac:plain-text-body")
+            body.append(CData("\n" + code.get_text() + "\n"))
+            code_macro.append(body)
+
+            pre.replace_with(code_macro)
 
     return str(soup)
+
 
 def convert_links(content, parent_page_title, child_pages):
     """
@@ -195,77 +204,6 @@ def publish_to_confluence(confluence_url, space_key, docs_folder, username, api_
             confluence.attach_file(png, page_id=target_page_id)
             print(f"🖼️ Attached diagram: {os.path.basename(png)}")
 
-# def publish_to_confluence(confluence_url, space_key, docs_folder, username, api_token):
-#     confluence = Confluence(
-#         url=confluence_url,
-#         username=username,
-#         password=api_token
-#     )
-
-#     parent_id = None
-#     child_pages = {}
-
-#     # Step 1: Always handle index.md first
-#     index_file = os.path.join(docs_folder, "index.md")
-#     if os.path.exists(index_file):
-#         with open(index_file, "r", encoding="utf-8") as f:
-#             content = f.read()
-
-#         # Extract project title from first heading
-#         first_line = content.splitlines()[0].strip()
-#         if first_line.startswith("#"):
-#             page_title = first_line.lstrip("#").strip()
-#         else:
-#             page_title = "Project Documentation"
-
-#         parent_page_title = page_title
-
-#         # Convert links in index.md before publishing
-#         content = convert_links(content, parent_page_title, child_pages)
-
-#         parent_page = confluence.create_page(
-#             space=space_key,
-#             title=page_title,
-#             body=content,
-#             parent_id=None,
-#             type="page",
-#             representation="storage"
-#         )
-#         parent_id = parent_page["id"]
-#         print(f"📤 Published parent page: {page_title} (ID: {parent_id})")
-#     else:
-#         print("⚠️ index.md not found, cannot create parent page!")
-#         return
-
-#     # Step 2: Publish all other docs as children
-#     for filename in os.listdir(docs_folder):
-#         if not filename.endswith(".md") or filename == "index.md":
-#             continue
-
-#         filepath = os.path.join(docs_folder, filename)
-#         with open(filepath, "r", encoding="utf-8") as f:
-#             content = f.read()
-
-#         # Use first heading if present, else filename
-#         first_line = content.splitlines()[0].strip()
-#         if first_line.startswith("#"):
-#             title = first_line.lstrip("#").strip()
-#         else:
-#             title = filename.replace(".md", "").capitalize()
-
-#         try:
-#             confluence.create_page(
-#                 space=space_key,
-#                 title=title,
-#                 body=content,
-#                 parent_id=parent_id,
-#                 type="page",
-#                 representation="storage"
-#             )
-#             child_pages[title] = True
-#             print(f"📄 Published child page: {title}")
-#         except Exception as e:
-#             print(f"❌ Failed to publish {title}: {e}")
 
 def show_prompt():
     print("\n📄 Documentation Generation Prompt:")
@@ -387,7 +325,7 @@ if __name__ == "__main__":
         confluence_url = "https://barathsundar03.atlassian.net/wiki"
         space_key = "~712020b66a49d1b1b44a6d9b897ba1631b9b7f"
         username = "barathsundar03@gmail.com"
-        api_token=
+        api_token= 
 
         docs_folder = os.path.join(os.path.dirname(repo_path), "docs")
         publish_to_confluence(confluence_url, space_key, docs_folder, username, api_token)
