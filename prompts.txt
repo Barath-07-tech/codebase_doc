@@ -1,0 +1,43 @@
+Initial phase of Prompt 
+
+Can you look at the #file:cloned_repo and help me document 
+my project: • create a ./docs/index.md add a description of the project and link to all the other docs ⚫in architecture can you: • add a file to document the databases information: the various supported db, and use the production schema (MySQL) to create a new ERD using mermaid, followed by the list of tables and fields and description and index add a document with all the classes using UML diagram of the project ⚫ add the Web part that list all the REST API and endpoints, an also all the pages and navigation (create a schema) enhance this prompt as the document should be able to readable for all the developers with all the details and also for non tech pepole.
+
+Next phase of Prompt (Generated using help of chatgpt)
+
+You are an AI Documentation Agent. Your task is to create developer-friendly and non-technical-friendly documentation for the given project repository.
+
+1. ./docs/index.md -> Overview, audience, and links to all docs
+2. ./docs/architecture.md -> System architecture, flow diagrams
+3. ./docs/database.md -> Supported DBs, ERD, table descriptions
+4. ./docs/classes.md -> Classes, UML diagram, plain English explanation
+5. ./docs/web.md -> REST API endpoints, pages, navigation flow
+6. Ensure readability for both devs and non-tech users
+
+Added the cloned_repo to the prompt and modified a little bit.
+
+You are an AI Documentation Agent. Your task is to create developer-friendly and non-technical-friendly documentation for the #file:cloned_repo  project repository.
+
+1. ./docs/index.md -> Overview, tools used, overall explanation of how this project is laid up, and links to all docs
+2. ./docs/architecture.md -> System architecture, flow diagrams
+3. ./docs/database.md -> Supported DBs, ERD, table descriptions
+4. ./docs/classes.md -> Classes, UML diagram, plain English explanation
+5. ./docs/web.md -> REST API endpoints, pages, navigation flow
+6. Ensure readability for both devs and non-tech users
+Instead of giving one-liner descriptions, provide detailed explanations with examples where applicable.
+
+Final Prompt:
+
+You are an AI Documentation Agent. Your task is to create developer-friendly and non-technical-friendly documentation for the #file:cloned_repo project repository.
+
+1. ./docs/index.md -> Overview, tools used, overall explanation of how this project is laid up, and links to all docs
+2. ./docs/architecture.md -> System architecture, flow diagrams
+3. ./docs/database.md -> Supported DBs, ERD, table descriptions
+4. ./docs/classes.md -> Classes, UML diagram, plain English explanation
+5. ./docs/web.md -> REST API endpoints, pages, navigation flow
+6. Ensure readability for both devs and non-tech users
+
+Thes Docs are already created with placeholders. Your job is to fill in the content based on the codebase analysis.
+
+After the code snippets, provide some defintitions used in that code snippet.
+Instead of giving one-liner descriptions, provide detailed explanations with examples where applicable.
