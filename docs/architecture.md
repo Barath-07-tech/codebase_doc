@@ -1,297 +1,188 @@
-# The Wild Oasis - System Architecture
+# Airline Management System - Architecture
 
-## High-Level Architecture
+## System Overview
+The Airline Management System is built using a layered architecture pattern, separating the application into distinct layers for better maintainability and separation of concerns.
 
-The Wild Oasis uses a modern client-side architecture with Supabase as the backend service. This document describes the system's architecture, components, and their interactions.
+## Architectural Layers
 
+### 1. Presentation Layer
+Implemented using Java Swing for the graphical user interface, handling:
+- User input processing
+### 2. Business Logic Layer
+Core classes managing business rules and operations:
+- Flight booking logic
+- Customer management
+- Boarding pass generation
+- Cancellation processing
+
+### 3. Data Access Layer
+Database interaction through JDBC:
+- SQL query execution
+- Connection management
+- Data transformation
+- Transaction handling
+
+## Component Diagram
 ```mermaid
 graph TD
-    Client[React Application]
-    Router[React Router]
-    Query[React Query]
-    Context[Context API]
-    UI[UI Components]
-    Supabase[Supabase Backend]
-    DB[(PostgreSQL)]
-    Storage[File Storage]
-    Auth[Authentication]
-
-    Client --> Router
-    Client --> Query
-    Client --> Context
-    Client --> UI
-    Query --> Supabase
-    Supabase --> DB
-    Supabase --> Storage
-    Supabase --> Auth
-```
-
-## Core Components
-
-### 1. Frontend Architecture
-
-```mermaid
-graph TD
-    subgraph Application
-        Pages[Pages Layer]
-        Features[Features Layer]
-        UI[UI Components]
-        Hooks[Custom Hooks]
-        Services[API Services]
+    subgraph "Presentation Layer"
+        H[Home.java]
+        L[Login.java]
+        AC[AddCustomer.java]
+        BF[BookFlight.java]
+        BP[BoardingPass.java]
+        C[Cancel.java]
+        FI[FlightInfo.java]
+        JD[JourneyDetails.java]
     end
 
-    Pages --> Features
-    Features --> UI
-    Features --> Hooks
-    Hooks --> Services
-    Services --> Backend[Supabase]
-```
-
-#### Pages Layer
-- **Dashboard** (`/pages/Dashboard.jsx`): Main analytics view
-- **Bookings** (`/pages/Bookings.jsx`): Booking management
-- **Cabins** (`/pages/Cabins.jsx`): Cabin inventory
-- **Settings** (`/pages/Settings.jsx`): Application configuration
-
-#### Features Layer
-Each feature module is self-contained with its components and hooks:
-
-```typescript
-features/
-├── authentication/         // User authentication
-│   ├── LoginForm.jsx
-│   ├── useLogin.js
-│   └── useUser.js
-├── bookings/             // Booking management
-│   ├── BookingTable.jsx
-│   ├── useBooking.js
-│   └── useBookings.js
-└── cabins/              // Cabin management
-    ├── CabinTable.jsx
-    ├── AddCabin.jsx
-    └── useCabins.js
-```
-
-### 2. State Management Architecture
-
-```mermaid
-graph TD
-    subgraph "State Management"
-        ServerState[Server State<br>React Query]
-        UIState[UI State<br>React Context]
-        LocalState[Local State<br>useState/useReducer]
+    subgraph "Business Logic Layer"
+        BL[Business Logic]
     end
 
-    ServerState --> API[API Layer]
-    UIState --> Theme[Theme Management]
-    UIState --> Auth[Auth State]
-    LocalState --> Forms[Form State]
-    LocalState --> Modals[Modal State]
+    subgraph "Data Access Layer"
+        DB[ConnDB.java]
+    end
+
+    subgraph "Database"
+        MySQL[(MySQL Database)]
+    end
+
+    H --> BL
+    L --> BL
+    AC --> BL
+    BF --> BL
+    BP --> BL
+    C --> BL
+    FI --> BL
+    JD --> BL
+    BL --> DB
+    DB --> MySQL
 ```
 
-#### Server State Management
-Using React Query for:
-- Data fetching
-- Caching
-- Synchronization
-- Error handling
+## Component Details
 
-Example:
-```javascript
-function useCabins() {
-  return useQuery({
-    queryKey: ['cabins'],
-    queryFn: getCabins,
-  });
-}
-```
+### 1. User Interface Components
 
-#### Application State
-Using Context API for:
-- Theme management
-- Authentication state
-- Global settings
+#### Login System (`Login.java`)
+- Handles user authentication
+- Manages access control
+- Session initialization
 
-Example:
-```javascript
-const DarkModeContext = createContext();
+#### Dashboard (`Home.java`)
+- Central navigation hub
+- Quick access to main features
+- System status overview
 
-function DarkModeProvider({ children }) {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  return (
-    <DarkModeContext.Provider value={{ isDarkMode, setIsDarkMode }}>
-      {children}
-    </DarkModeContext.Provider>
-  );
-}
-```
+#### Customer Management (`AddCustomer.java`)
+- Customer registration
+- Profile management
+- Data validation
 
-### 3. Component Communication
+#### Flight Operations
+- `BookFlight.java`: Flight reservation
+- `BoardingPass.java`: Travel document generation
+- `Cancel.java`: Booking cancellation
+- `FlightInfo.java`: Flight details and status
+- `JourneyDetails.java`: Trip information
 
+## Database Connection
+
+### Connection Management (`ConnDB.java`)
 ```mermaid
 sequenceDiagram
-    participant UI as UI Component
-    participant Hook as Custom Hook
-    participant Query as React Query
-    participant API as API Service
-    participant DB as Supabase
+    participant UI as User Interface
+    participant DB as ConnDB
+    participant SQL as MySQL Database
 
-    UI->>Hook: Call hook method
-    Hook->>Query: Make query/mutation
-    Query->>API: API request
-    API->>DB: Database operation
-    DB-->>API: Response
-    API-->>Query: Processed data
-    Query-->>Hook: Updated state
-    Hook-->>UI: Render update
+    UI->>DB: Request Connection
+    DB->>DB: Initialize Driver
+    DB->>SQL: Establish Connection
+    SQL-->>DB: Connection Successful
+    DB-->>UI: Return Connection
+
+    Note over UI,SQL: Connection Pooling for Efficiency
 ```
-
-### 4. Authentication Flow
-
-```mermaid
-sequenceDiagram
-    participant User as User
-    participant Auth as Auth Component
-    participant Supabase as Supabase Auth
-    participant Protected as Protected Route
-    participant App as Application
-
-    User->>Auth: Enter credentials
-    Auth->>Supabase: Authenticate
-    Supabase-->>Auth: JWT Token
-    Auth->>Protected: Navigate
-    Protected->>Supabase: Verify token
-    Supabase-->>Protected: Valid
-    Protected->>App: Allow access
-```
-
-## Technical Implementation
-
-### 1. Route Protection
-```javascript
-function ProtectedRoute({ children }) {
-  const { isAuthenticated, isLoading } = useUser();
-  
-  if (isLoading) return <Spinner />;
-  if (!isAuthenticated) return <Navigate to="/login" />;
-  
-  return children;
-}
-```
-
-### 2. API Service Layer
-```javascript
-async function getCabins() {
-  const { data, error } = await supabase
-    .from('cabins')
-    .select('*');
-    
-  if (error) throw new Error('Could not fetch cabins');
-  return data;
-}
-```
-
-### 3. Custom Hooks Pattern
-```javascript
-function useBookings() {
-  const queryClient = useQueryClient();
-  const { data, isLoading } = useQuery({
-    queryKey: ['bookings'],
-    queryFn: getBookings,
-  });
-  
-  const { mutate: createBooking } = useMutation({
-    mutationFn: createBookingApi,
-    onSuccess: () => {
-      queryClient.invalidateQueries(['bookings']);
-      toast.success('Booking created!');
-    },
-  });
-  
-  return { bookings: data, isLoading, createBooking };
-}
-```
-
-## Performance Considerations
-
-### 1. Data Fetching Optimization
-- Implements React Query for efficient caching
-- Uses optimistic updates for better UX
-- Implements infinite scrolling for large datasets
-
-### 2. Component Optimization
-```javascript
-// Memoization example
-const MemoizedCabinRow = memo(CabinRow, (prev, next) => {
-  return prev.cabin.id === next.cabin.id;
-});
-```
-
-### 3. Code Splitting
-```javascript
-// Route-based code splitting
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const Bookings = lazy(() => import('./pages/Bookings'));
-```
-
-## Security Measures
-
-### 1. Authentication
-- JWT-based authentication through Supabase
-- Protected routes implementation
-- Automatic token refresh
-
-### 2. Data Access
-- Row Level Security (RLS) in Supabase
-- Role-based access control
-- Input validation and sanitization
 
 ## Error Handling
+1. **User Interface Level**
+   - Input validation
+   - Form completion checks
+   - User feedback messages
 
-```javascript
-// Global error boundary
-function ErrorFallback({ error }) {
-  return (
-    <div role="alert">
-      <h2>Something went wrong!</h2>
-      <pre>{error.message}</pre>
-      <button onClick={() => window.location.assign('/')}>
-        Refresh Application
-      </button>
-    </div>
-  );
-}
+2. **Business Logic Level**
+   - Business rule validation
+   - Data consistency checks
+   - Transaction management
+
+3. **Database Level**
+   - Connection error handling
+   - Query error management
+   - Data integrity checks
+
+## Security Measures
+1. **Authentication**
+   - Login-based access control
+   - Session management
+   - Role-based permissions
+
+2. **Data Security**
+   - Secure database connections
+   - Password encryption
+   - Input validation
+
+## Performance Considerations
+1. **Database Optimization**
+   - Connection pooling
+   - Prepared statements
+   - Query optimization
+
+2. **UI Responsiveness**
+   - Asynchronous operations
+   - Efficient data loading
+   - Resource management
+
+## System Requirements
+1. **Hardware Requirements**
+   - Processor: 2.0 GHz or higher
+   - RAM: 4GB minimum
+   - Storage: 500MB free space
+
+2. **Software Requirements**
+   - Java Runtime Environment (JRE) 8+
+   - MySQL Server 5.7+
+   - Windows/Linux/macOS
+
+## Deployment Architecture
+```mermaid
+graph LR
+    subgraph "Client Machine"
+        App[Java Application]
+        JRE[Java Runtime]
+    end
+
+    subgraph "Database Server"
+        MySQL[(MySQL Database)]
+        DBServer[Database Server]
+    end
+
+    App --> JRE
+    JRE --> DBServer
+    DBServer --> MySQL
 ```
 
-## Development Guidelines
+## Scalability
+The system is designed to handle:
+- Multiple concurrent users
+- Growing customer database
+- Increased flight bookings
+- Additional features
 
-### 1. Component Creation
-- Follow atomic design principles
-- Implement proper prop validation
-- Write reusable components
-
-### 2. State Management
-- Use appropriate state management based on scope
-- Implement proper caching strategies
-- Follow React Query best practices
-
-### 3. Testing Strategy
-- Unit tests for business logic
-- Integration tests for features
-- End-to-end tests for critical flows
-
-## Monitoring and Logging
-
-### 1. Performance Monitoring
-- React Query DevTools integration
-- Performance profiling
-- Error tracking
-
-### 2. Application Logging
-- Error logging
-- User action tracking
-- Performance metrics
-
----
-
-This architecture documentation is maintained alongside the codebase. For specific implementation details, refer to the inline documentation in the source code.
+## Maintenance
+Regular maintenance includes:
+- Database backups
+- System updates
+- Performance monitoring
+- Security patches
+- Caching strategies
+- Real-time updates

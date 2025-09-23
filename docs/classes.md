@@ -1,390 +1,361 @@
-# The Wild Oasis - Components and Classes Documentation
+# Class Documentation
 
-## Overview
-
-The Wild Oasis application is built using React functional components with a feature-based architecture. This document provides a detailed breakdown of the components, their relationships, and implementation patterns.
-
-## Component Hierarchy
+## Class Hierarchy
 
 ```mermaid
 classDiagram
-    class App {
-        +render()
-        -queryClient
-        -router
+    JFrame <|-- Home
+    JFrame <|-- Login
+    JFrame <|-- AddCustomer
+    JFrame <|-- BookFlight
+    JFrame <|-- BoardingPass
+    JFrame <|-- Cancel
+    JFrame <|-- FlightInfo
+    JFrame <|-- JourneyDetails
+
+    ActionListener <|.. Home
+    ActionListener <|.. Login
+    ActionListener <|.. AddCustomer
+    ActionListener <|.. BookFlight
+    ActionListener <|.. BoardingPass
+    ActionListener <|.. Cancel
+    ActionListener <|.. JourneyDetails
+
+    ConnDB -- Home
+    ConnDB -- Login
+    ConnDB -- AddCustomer
+    ConnDB -- BookFlight
+    ConnDB -- BoardingPass
+    ConnDB -- Cancel
+    ConnDB -- FlightInfo
+    ConnDB -- JourneyDetails
+
+    class JFrame {
+        +setLayout()
+        +setVisible()
+        +setSize()
+        +setLocation()
     }
-    class AppLayout {
-        +render()
-        -header
-        -sidebar
-        -main
+
+    class ActionListener {
+        +actionPerformed(ActionEvent)
     }
-    class ProtectedRoute {
-        +render()
-        -isAuthenticated
-        -redirectTo
+
+    class ConnDB {
+        -Connection c
+        -Statement s
+        +ConnDB()
     }
-    class DarkModeProvider {
-        +isDarkMode
-        +toggleDarkMode()
+
+    class Home {
+        +Home()
+        +actionPerformed(ActionEvent)
     }
-    
-    App --> DarkModeProvider
-    App --> ProtectedRoute
-    ProtectedRoute --> AppLayout
-    
-    class BookingTable {
-        +bookings[]
-        +isLoading
-        +onCheckIn()
-        +onDelete()
+
+    class Login {
+        -JTextField username
+        -JPasswordField password
+        +Login()
+        +actionPerformed(ActionEvent)
     }
-    class BookingRow {
-        +booking
-        +onCheckIn
-        +onDelete
+
+    class AddCustomer {
+        -JTextField name
+        -JTextField nationality
+        -JTextField address
+        -JTextField phone
+        -JTextField aadhar
+        -JRadioButton male
+        -JRadioButton female
+        +AddCustomer()
+        +actionPerformed(ActionEvent)
     }
-    BookingTable --> BookingRow
-    
-    class CabinTable {
-        +cabins[]
-        +isLoading
-        +onEdit()
-        +onDelete()
+
+    class BookFlight {
+        -JTextField source
+        -JTextField destination
+        -JTextField date
+        -JComboBox flightcode
+        +BookFlight()
+        +actionPerformed(ActionEvent)
     }
-    class CabinRow {
-        +cabin
-        +onEdit
-        +onDelete
+
+    class BoardingPass {
+        -JTextField pnr
+        +BoardingPass()
+        +actionPerformed(ActionEvent)
     }
-    CabinTable --> CabinRow
+
+    class Cancel {
+        -JTextField pnr
+        +Cancel()
+        +actionPerformed(ActionEvent)
+    }
+
+    class FlightInfo {
+        -JTable table
+        +FlightInfo()
+        -createTable()
+    }
+
+    class JourneyDetails {
+        -JTextField pnr
+        +JourneyDetails()
+        +actionPerformed(ActionEvent)
+    }
 ```
+## Class Descriptions
 
-## Feature Modules
+### 1. ConnDB
+**Purpose**: Database connection management class
+- Establishes and manages MySQL database connections
+- Provides connection and statement objects to other classes
+- Implements singleton pattern for connection management
 
-### 1. Authentication Module
-
-#### LoginForm Component
-```jsx
-function LoginForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const { login, isLoading } = useLogin();
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    await login({ email, password });
-  }
-
-  return (
-    <Form onSubmit={handleSubmit}>
-      <FormRow label="Email">
-        <Input type="email" value={email} onChange={...} />
-      </FormRow>
-      <FormRow label="Password">
-        <Input type="password" value={password} onChange={...} />
-      </FormRow>
-      <Button disabled={isLoading}>Log In</Button>
-    </Form>
-  );
+**Key Methods**:
+```java
+public ConnDB() {
+    // Initializes database connection
+    // Loads JDBC driver
+    // Creates statement object
 }
 ```
 
-**Plain English Explanation:**
-- A form component for user authentication
-- Takes email and password inputs
-- Handles form submission and loading states
-- Shows error messages if login fails
+### 2. Home
+**Purpose**: Main dashboard interface
+- Provides navigation to all system features
+- Centralizes access to different operations
+- Implements menu-based navigation
 
-### 2. Booking Management
+**Key Features**:
+- User interface components for all main functions
+- Event handling for navigation
+- Visual feedback for user actions
 
-#### BookingTable Component
-```jsx
-function BookingTable() {
-  const { bookings, isLoading } = useBookings();
-  const [searchParams] = useSearchParams();
+### 3. Login
+**Purpose**: User authentication interface
+- Handles user login process
+- Validates credentials against database
+- Manages access control
 
-  // Filter bookings based on status
-  const filterValue = searchParams.get("status") || "all";
-  const filteredBookings = filterBookings(bookings, filterValue);
+**Key Components**:
+- Username and password fields
+- Login button with validation
+- Error handling for invalid credentials
 
-  // Sort bookings
-  const sortBy = searchParams.get("sortBy") || "startDate-desc";
-  const sortedBookings = sortBookings(filteredBookings, sortBy);
+### 4. AddCustomer
+**Purpose**: Customer registration interface
+- Collects and validates customer information
+- Stores customer data in database
+- Handles form validation
 
-  return (
-    <Table>
-      <TableHeader>...</TableHeader>
-      <TableBody>
-        {sortedBookings.map(booking => (
-          <BookingRow key={booking.id} booking={booking} />
-        ))}
-      </TableBody>
-    </Table>
-  );
+**Key Fields**:
+```java
+// Form Fields
+JTextField name;        // Customer name
+JTextField nationality; // Customer nationality
+JTextField address;     // Customer address
+JTextField phone;       // Contact number
+JTextField aadhar;      // ID number
+JRadioButton gender;    // Gender selection
+```
+
+### 5. BookFlight
+**Purpose**: Flight booking interface
+- Manages flight reservations
+- Validates booking information
+- Generates booking references
+
+**Key Operations**:
+- Flight search and selection
+- Passenger information verification
+- Booking confirmation
+- PNR generation
+
+### 6. BoardingPass
+**Purpose**: Boarding pass generation
+- Creates boarding passes for confirmed bookings
+- Retrieves booking information
+- Formats travel documents
+
+**Key Features**:
+- PNR validation
+- Passenger details display
+- Boarding pass printing
+
+### 7. Cancel
+**Purpose**: Booking cancellation interface
+- Processes booking cancellations
+- Updates reservation records
+- Handles refund information
+
+**Key Steps**:
+1. PNR validation
+2. Booking verification
+3. Cancellation processing
+4. Database update
+
+### 8. FlightInfo
+**Purpose**: Flight information display
+- Shows available flights
+- Displays flight schedules
+- Presents pricing information
+
+**Components**:
+- JTable for flight listing
+- Search and filter options
+- Sorting capabilities
+
+### 9. JourneyDetails
+**Purpose**: Travel information interface
+- Displays booking details
+- Shows itinerary information
+- Presents travel schedule
+
+**Key Methods**:
+```java
+public void actionPerformed(ActionEvent ae) {
+    // Handles user interactions
+    // Retrieves journey information
+    // Updates display
 }
 ```
 
-**Plain English Explanation:**
-- Displays a list of all bookings in a table format
-- Supports filtering by booking status
-- Allows sorting by different criteria
-- Each booking is displayed in its own row
+## Common Patterns
 
-### 3. Cabin Management
+### 1. GUI Components
+All interface classes:
+- Extend `JFrame` for window management
+- Implement `ActionListener` for event handling
+- Use consistent layout patterns
 
-#### AddCabin Component
-```jsx
-function AddCabin() {
-  const { register, handleSubmit, reset, formState } = useForm();
-  const { createCabin, isCreating } = useCreateCabin();
-
-  function onSubmit(data) {
-    const image = data.image[0];
-    createCabin({ ...data, image }, {
-      onSuccess: () => {
-        reset();
-        toast.success("Cabin created successfully");
-      }
-    });
-  }
-
-  return (
-    <Form onSubmit={handleSubmit(onSubmit)}>
-      <FormRow label="Cabin Name">
-        <Input {...register("name", { required: true })} />
-      </FormRow>
-      {/* Other form fields */}
-    </Form>
-  );
-}
+### 2. Database Operations
+Standard pattern for database operations:
+```java
+ConnDB conn = new ConnDB();
+String query = "SELECT/INSERT/UPDATE...";
+ResultSet rs = conn.s.executeQuery(query);
+// Process results
 ```
 
-**Plain English Explanation:**
-- Form for adding new cabins to the system
-- Handles file uploads for cabin images
-- Validates form inputs
-- Shows success/error messages
-- Resets form after successful submission
-
-## Custom Hooks
-
-### 1. useBookings Hook
-```typescript
-interface Booking {
-  id: number;
-  startDate: Date;
-  endDate: Date;
-  status: string;
-  // ... other fields
-}
-
-function useBookings() {
-  const queryClient = useQueryClient();
-  
-  const {
-    data: bookings,
-    isLoading,
-    error
-  } = useQuery<Booking[]>({
-    queryKey: ['bookings'],
-    queryFn: getBookings
-  });
-
-  const { mutate: createBooking } = useMutation({
-    mutationFn: createBookingApi,
-    onSuccess: () => {
-      queryClient.invalidateQueries(['bookings']);
-      toast.success('Booking created!');
+### 3. Event Handling
+Consistent event handling pattern:
+```java
+public void actionPerformed(ActionEvent ae) {
+    if (ae.getSource() == buttonName) {
+        // Handle specific button click
     }
-  });
-
-  return { bookings, isLoading, error, createBooking };
 }
-```
-
-**Plain English Explanation:**
-- Custom hook for managing booking data
-- Fetches bookings from the server
-- Provides functions to create new bookings
-- Handles loading and error states
-- Automatically updates the UI when data changes
-
-### 2. useDarkMode Hook
-```javascript
-function useDarkMode() {
-  const [isDarkMode, setIsDarkMode] = useLocalStorageState(
-    'isDarkMode',
-    window.matchMedia('(prefers-color-scheme: dark)').matches
-  );
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark-mode', isDarkMode);
-  }, [isDarkMode]);
-
-  return {
-    isDarkMode,
-    toggleDarkMode: () => setIsDarkMode(mode => !mode)
-  };
-}
-```
-
-**Plain English Explanation:**
-- Manages the application's dark mode state
-- Persists preference in localStorage
-- Automatically detects system preference
-- Updates document classes when mode changes
-
-## UI Components
-
-### 1. Modal Component
-```jsx
-const Modal = createContext();
-
-function Modal({ children }) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <Modal.Provider value={{ isOpen, open, close }}>
-      {children}
-    </Modal.Provider>
-  );
-}
-
-Modal.Open = function Open({ children }) {
-  const { open } = useContext(Modal);
-  return cloneElement(children, { onClick: () => open() });
-};
-
-Modal.Window = function Window({ children }) {
-  const { isOpen, close } = useContext(Modal);
-  return createPortal(
-    <Overlay>
-      <StyledModal>
-        <Button onClick={close}>&times;</Button>
-        {children}
-      </StyledModal>
-    </Overlay>,
-    document.body
-  );
-};
-```
-
-**Plain English Explanation:**
-- Reusable modal dialog component
-- Uses React Context for state management
-- Supports compound components pattern
-- Renders using a portal for proper stacking
-
-### 2. Table Component
-```jsx
-function Table({ columns, data, onRowClick }) {
-  return (
-    <TableWrapper>
-      <TableHeader>
-        {columns.map(column => (
-          <th key={column.key}>{column.label}</th>
-        ))}
-      </TableHeader>
-      <TableBody>
-        {data.map(row => (
-          <TableRow key={row.id} onClick={() => onRowClick?.(row)}>
-            {columns.map(column => (
-              <td key={column.key}>
-                {column.render ? column.render(row) : row[column.key]}
-              </td>
-            ))}
-          </TableRow>
-        ))}
-      </TableBody>
-    </TableWrapper>
-  );
-}
-```
-
-**Plain English Explanation:**
-- Generic table component
-- Supports custom column rendering
-- Handles row click events
-- Flexible data display
-
-## Form Components
-
-### 1. Form Row
-```jsx
-function FormRow({ label, error, children }) {
-  return (
-    <StyledFormRow>
-      <Label htmlFor={children.props.id}>{label}</Label>
-      {children}
-      {error && <Error>{error}</Error>}
-    </StyledFormRow>
-  );
-}
-```
-
-### 2. Input
-```jsx
-const Input = styled.input`
-  border: 1px solid var(--color-grey-300);
-  background-color: var(--color-grey-0);
-  border-radius: var(--border-radius-sm);
-  padding: 0.8rem 1.2rem;
-  box-shadow: var(--shadow-sm);
-`;
 ```
 
 ## Best Practices
 
-### 1. Component Organization
-- Keep components focused and single-responsibility
-- Use feature-based folder structure
-- Separate business logic from UI components
-
-### 2. State Management
-- Use React Query for server state
-- Use Context for global UI state
-- Keep component state local when possible
-
-### 3. Error Handling
-- Implement error boundaries
-- Show user-friendly error messages
-- Log errors for debugging
-
-### 4. Performance
-- Memoize expensive computations
-- Use pagination for large lists
-- Implement proper loading states
-
-## Testing Strategy
-
-### 1. Unit Tests
-```javascript
-describe('BookingRow', () => {
-  it('should display booking details', () => {
-    const booking = {
-      id: 1,
-      startDate: '2023-09-15',
-      guestName: 'John Doe'
-    };
-    render(<BookingRow booking={booking} />);
-    expect(screen.getByText('John Doe')).toBeInTheDocument();
-  });
-});
+### 1. Error Handling
+```java
+try {
+    // Database operation
+} catch (Exception e) {
+    e.printStackTrace();
+    // User-friendly error message
+}
 ```
 
-### 2. Integration Tests
-```javascript
-describe('BookingFlow', () => {
-  it('should create a new booking', async () => {
-    render(<BookingForm />);
-    // Fill form
-    // Submit
-    // Assert success
-  });
-});
+### 2. Input Validation
+```java
+private boolean validateInput() {
+    // Check required fields
+    // Validate data formats
+    // Return validation status
+}
 ```
 
----
+### 3. Resource Management
+```java
+// Proper resource cleanup
+finally {
+    if (rs != null) rs.close();
+    if (stmt != null) stmt.close();
+}
+```
 
-This documentation is maintained alongside the component code. For specific implementation details, refer to the individual component files in the source code.
+## Dependencies
+
+### External Libraries
+1. Java Swing (`javax.swing.*`)
+   - GUI components
+   - Event handling
+   - Window management
+
+2. MySQL Connector (`com.mysql.cj.jdbc.Driver`)
+   - Database connectivity
+   - Query execution
+   - Result set handling
+
+### Internal Dependencies
+1. `ConnDB` used by all classes for database operations
+2. Each form class depends on related database tables
+3. Navigation flow between classes through event handling
+
+### State Management
+
+```plaintext
+useLocalStorageState
+├── Purpose: Persist state in localStorage
+└── Usage: Dark mode, user preferences
+```
+
+### Navigation
+
+```plaintext
+useMoveBack
+├── Purpose: Handle navigation history
+└── Usage: Back button functionality
+```
+
+### UI Interaction
+
+```plaintext
+useOutsideClick
+├── Purpose: Detect clicks outside elements
+└── Usage: Modal closing, dropdown menus
+```
+
+## Plain English Explanations
+
+### For Developers
+
+1. **Component Organization**
+
+   - Components are grouped by feature
+   - Each feature has its own hooks and utilities
+   - UI components are shared across features
+
+2. **State Management**
+
+   - Local state for component-specific data
+   - Context for global state
+   - Custom hooks for complex logic
+
+3. **Data Flow**
+   - Components use hooks for data operations
+   - Services handle API communication
+   - Context provides global state access
+
+### For Non-Technical Users
+
+1. **User Interface**
+
+   - Clear navigation structure
+   - Consistent design patterns
+   - Intuitive form handling
+
+2. **Features**
+
+   - Straightforward booking management
+   - Easy cabin administration
+   - Simple user settings
+
+3. **Data Handling**
+   - Automatic data saving
+   - Real-time updates
+   - Secure information storage

@@ -2,10 +2,12 @@ import os
 import subprocess
 import shutil
 import re
+from dotenv import load_dotenv
 import markdown
 from bs4 import BeautifulSoup ,CData
 from atlassian import Confluence
 
+load_dotenv()
 #playwright need to be installed
 
 # Enhanced documentation prompt
@@ -171,7 +173,8 @@ def publish_to_confluence(confluence_url, space_key, docs_folder, username, api_
         page_body = md_to_confluence_storage(content)
 
         if filename == "index.md":
-            page_title = content.splitlines()[0].lstrip("# ").strip() or "Project Documentation"
+            parent_title = content.splitlines()[0].lstrip("# ").strip() or "Project Documentation"
+            page_title = parent_title
             parent_page = confluence.create_page(
                 space=space_key,
                 title=page_title,
@@ -183,7 +186,11 @@ def publish_to_confluence(confluence_url, space_key, docs_folder, username, api_
             target_page_id = parent_page_id
             print(f"📤 Published parent page: {page_title} (ID: {parent_page_id})")
         else:
-            page_title = filename.replace(".md", "").capitalize()
+            child_suffix = filename.replace(".md", "").capitalize()
+            if parent_title:
+                page_title = f"{parent_title} - {child_suffix}"
+            else:
+                page_title = child_suffix
             if parent_page_id:
                 child_page = confluence.create_page(
                     space=space_key,
@@ -310,7 +317,7 @@ if __name__ == "__main__":
     repo_path = clone_repo(repo_url)
 
     if repo_path:
-        #generate_docs(repo_path)
+        generate_docs(repo_path)
         show_prompt()
         input("\n⚡ Press Enter after feeding this prompt to your LLM...")
         # Delete the cloned_repo folder after documentation is created
@@ -322,10 +329,10 @@ if __name__ == "__main__":
             print(f"⚠️ Warning: Could not delete cloned repository folder: {e}")
         print("\n🎉 Documentation generation completed successfully!")
 
-        confluence_url = "https://barathsundar03.atlassian.net/wiki"
-        space_key = "~712020b66a49d1b1b44a6d9b897ba1631b9b7f"
-        username = "barathsundar03@gmail.com"
-        api_token= 
+        confluence_url = os.getenv("CONFLUENCE_URL")
+        space_key = os.getenv("CONFLUENCE_SPACE_KEY")
+        username = os.getenv("CONFLUENCE_USERNAME")
+        api_token = os.getenv("CONFLUENCE_API_TOKEN")
 
         docs_folder = os.path.join(os.path.dirname(repo_path), "docs")
         publish_to_confluence(confluence_url, space_key, docs_folder, username, api_token)

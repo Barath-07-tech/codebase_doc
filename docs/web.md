@@ -1,343 +1,314 @@
-# The Wild Oasis - Web Documentation
+# User Interface Flow Documentation
 
 ## Overview
+The Airline Management System provides a desktop-based graphical user interface built using Java Swing. This document outlines the navigation flow, screen interactions, and user interface components.
 
-This document outlines the web architecture of The Wild Oasis application, including API endpoints, routing structure, and navigation flows. The application uses React Router for client-side routing and Supabase for API endpoints.
-
-## API Endpoints
-
-### Authentication API
-
-#### 1. User Authentication
-```typescript
-interface AuthCredentials {
-  email: string;
-  password: string;
-}
-
-interface UserResponse {
-  user: User;
-  session: Session;
-}
-
-// Login
-POST /auth/v1/signin
-Body: AuthCredentials
-Response: UserResponse
-
-// Signup
-POST /auth/v1/signup
-Body: AuthCredentials & { fullName: string }
-Response: UserResponse
-
-// Logout
-POST /auth/v1/signout
-Response: { success: true }
-```
-
-Example usage:
-```javascript
-const loginApi = async ({ email, password }) => {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password
-  });
-  if (error) throw new Error(error.message);
-  return data;
-};
-```
-
-### Bookings API
-
-#### 1. Booking Management
-```typescript
-interface Booking {
-  id: number;
-  cabinId: number;
-  guestId: number;
-  startDate: string;
-  endDate: string;
-  numNights: number;
-  numGuests: number;
-  status: 'unconfirmed' | 'confirmed' | 'checked-in' | 'checked-out';
-  totalPrice: number;
-  observations?: string;
-}
-
-// Get all bookings
-GET /rest/v1/bookings
-Query params: 
-  - status: string
-  - sortBy: string
-  - page: number
-
-// Get single booking
-GET /rest/v1/bookings?id=eq.{id}&select=*,cabins(*),guests(*)
-
-// Create booking
-POST /rest/v1/bookings
-Body: Omit<Booking, 'id'>
-
-// Update booking
-PATCH /rest/v1/bookings?id=eq.{id}
-Body: Partial<Booking>
-```
-
-Example usage:
-```javascript
-const getBookings = async ({ filter, sortBy, page }) => {
-  let query = supabase
-    .from('bookings')
-    .select('*, cabins(*), guests(*)');
-
-  if (filter) query = query.eq(filter.field, filter.value);
-  if (sortBy) query = query.order(sortBy.field, { ascending: sortBy.direction === 'asc' });
-  
-  const { data, error } = await query;
-  if (error) throw new Error('Could not load bookings');
-  return data;
-};
-```
-
-### Cabins API
-
-#### 1. Cabin Management
-```typescript
-interface Cabin {
-  id: number;
-  name: string;
-  maxCapacity: number;
-  regularPrice: number;
-  discount: number;
-  description: string;
-  image: string;
-}
-
-// Get all cabins
-GET /rest/v1/cabins
-
-// Create cabin
-POST /rest/v1/cabins
-Body: Omit<Cabin, 'id'>
-
-// Update cabin
-PATCH /rest/v1/cabins?id=eq.{id}
-Body: Partial<Cabin>
-
-// Delete cabin
-DELETE /rest/v1/cabins?id=eq.{id}
-```
-
-## Application Routes
-
-### Route Structure
-```jsx
-<BrowserRouter>
-  <Routes>
-    <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-      <Route index element={<Navigate to="dashboard" />} />
-      <Route path="dashboard" element={<Dashboard />} />
-      <Route path="bookings" element={<Bookings />} />
-      <Route path="bookings/:bookingId" element={<Booking />} />
-      <Route path="checkin/:bookingId" element={<Checkin />} />
-      <Route path="cabins" element={<Cabins />} />
-      <Route path="users" element={<Users />} />
-      <Route path="settings" element={<Settings />} />
-      <Route path="account" element={<Account />} />
-    </Route>
-    <Route path="login" element={<Login />} />
-    <Route path="*" element={<PageNotFound />} />
-  </Routes>
-</BrowserRouter>
-```
-
-### Page Components
-
-#### 1. Dashboard (`/dashboard`)
-The main landing page showing business statistics and recent activity.
-
-```jsx
-function Dashboard() {
-  const { bookings, isLoading: isLoadingBookings } = useRecentBookings();
-  const { stats, isLoading: isLoadingStats } = useStats();
-
-  if (isLoadingBookings || isLoadingStats) return <Spinner />;
-
-  return (
-    <StyledDashboard>
-      <Stats stats={stats} />
-      <TodayActivity />
-      <DurationChart />
-      <SalesChart bookings={bookings} />
-    </StyledDashboard>
-  );
-}
-```
-
-#### 2. Bookings Page (`/bookings`)
-Lists all bookings with filtering and sorting capabilities.
-
-```jsx
-function Bookings() {
-  const [searchParams] = useSearchParams();
-  const { bookings, isLoading } = useBookings();
-
-  // Filter and sort operations
-  const filteredBookings = filterBookings(bookings, searchParams);
-  const sortedBookings = sortBookings(filteredBookings, searchParams);
-
-  return (
-    <BookingsLayout>
-      <BookingTableOperations />
-      <BookingTable bookings={sortedBookings} />
-      <Pagination />
-    </BookingsLayout>
-  );
-}
-```
-
-## Navigation Flows
-
-### 1. Authentication Flow
-
+## Screen Navigation Map
 ```mermaid
-sequenceDiagram
-    participant U as User
-    participant L as Login Page
-    participant A as Auth API
-    participant D as Dashboard
-
-    U->>L: Enter credentials
-    L->>A: POST /auth/signin
-    A-->>L: Return JWT
-    L->>D: Redirect to dashboard
-```
-
-### 2. Booking Management Flow
-
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant B as Bookings Page
-    participant D as Booking Details
-    participant C as Check-in Page
+graph TD
+    Login[Login Screen] --> Home[Home Dashboard]
+    Home --> AC[Add Customer]
+    Home --> BF[Book Flight]
+    Home --> BP[Boarding Pass]
+    Home --> FI[Flight Info]
+    Home --> JD[Journey Details]
+    Home --> C[Cancel Booking]
     
-    U->>B: View bookings
-    B->>D: Select booking
-    D->>C: Click check-in
-    C->>B: Complete check-in
+    BF --> BP
+    BP --> JD
+    C --> JD
+```
+## Screen Descriptions
+
+### 1. Login Screen (`Login.java`)
+Entry point for user authentication.
+
+**Components**:
+- Username text field
+- Password field
+- Login button
+- Clear button
+
+**Flow**:
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant L as Login Screen
+    participant DB as Database
+    participant H as Home Screen
+
+    U->>L: Enter Credentials
+    L->>DB: Validate Credentials
+    alt Valid Credentials
+        DB-->>L: Success
+        L->>H: Open Home Screen
+    else Invalid Credentials
+        DB-->>L: Failure
+        L->>U: Show Error Message
+    end
 ```
 
-## State Management
+### 2. Home Dashboard (`Home.java`)
+Central navigation hub for all system features.
 
-### 1. URL State
-Used for filtering and sorting in list views:
-```javascript
-// Current URL: /bookings?status=checked-in&sortBy=date
-const [searchParams] = useSearchParams();
-const status = searchParams.get("status"); // "checked-in"
-const sortBy = searchParams.get("sortBy"); // "date"
+**Menu Options**:
+- Customer Management
+- Flight Booking
+- Flight Information
+- Journey Details
+- Cancellation
+
+**Layout**:
+```
++------------------------+
+|      Airline Logo      |
++------------------------+
+|   Quick Access Menu    |
++------------------------+
+|                        |
+|    Feature Buttons     |
+|                        |
++------------------------+
+|      Status Bar        |
++------------------------+
 ```
 
-### 2. Form State
-Using React Hook Form for form management:
-```javascript
-function CreateBookingForm() {
-  const { register, handleSubmit, formState: { errors } } = useForm();
-  
-  return (
-    <Form onSubmit={handleSubmit(onSubmit)}>
-      <Input {...register("guestName", { required: true })} />
-      {errors.guestName && <Error>This field is required</Error>}
-    </Form>
-  );
-}
+### 3. Add Customer (`AddCustomer.java`)
+Customer registration interface.
+
+**Form Fields**:
+- Name
+- Nationality
+- Address
+- Phone
+- Aadhar (ID)
+- Gender
+
+**Workflow**:
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant F as Form
+    participant V as Validation
+    participant DB as Database
+
+    U->>F: Fill Details
+    F->>V: Validate Input
+    alt Valid Input
+        V->>DB: Save Customer
+        DB-->>F: Success Message
+    else Invalid Input
+        V->>F: Show Errors
+    end
+```
+
+### 4. Book Flight (`BookFlight.java`)
+Flight reservation interface.
+
+**Steps**:
+1. Enter passenger details
+2. Select flight
+3. Confirm booking
+4. Generate PNR
+
+**Process Flow**:
+```mermaid
+graph TD
+    A[Enter Details] --> B[Search Flights]
+    B --> C[Select Flight]
+    C --> D[Confirm Details]
+    D --> E[Process Payment]
+    E --> F[Generate PNR]
+    F --> G[Issue Boarding Pass]
+```
+
+### 5. Boarding Pass (`BoardingPass.java`)
+Travel document generation screen.
+
+**Features**:
+- PNR lookup
+- Passenger details display
+- Flight information
+- Seat assignment
+- Print functionality
+
+### 6. Flight Information (`FlightInfo.java`)
+Flight schedule and details display.
+
+**Table Columns**:
+- Flight Code
+- Source
+- Destination
+- Departure
+- Arrival
+- Price
+- Available Seats
+
+### 7. Journey Details (`JourneyDetails.java`)
+Travel itinerary information screen.
+
+**Information Display**:
+- Booking reference (PNR)
+- Passenger details
+- Flight details
+- Travel dates
+- Status
+
+### 8. Cancel Booking (`Cancel.java`)
+Reservation cancellation interface.
+
+**Process**:
+1. Enter PNR
+2. Verify booking
+3. Confirm cancellation
+4. Generate refund details
+
+## Common UI Elements
+
+### 1. Form Components
+Standard input elements used across screens:
+```java
+// Text Fields
+JTextField textField = new JTextField(20);
+textField.setBounds(x, y, width, height);
+
+// Buttons
+JButton button = new JButton("Action");
+button.addActionListener(this);
+
+// Labels
+JLabel label = new JLabel("Field Name:");
+```
+
+### 2. Dialog Boxes
+Consistent message display:
+```java
+// Success Message
+JOptionPane.showMessageDialog(null, 
+    "Operation Successful",
+    "Success",
+    JOptionPane.INFORMATION_MESSAGE);
+
+// Error Message
+JOptionPane.showMessageDialog(null,
+    "Error Details",
+    "Error",
+    JOptionPane.ERROR_MESSAGE);
+```
+
+### 3. Tables
+Data display format:
+```java
+JTable table = new JTable(data, columnNames);
+JScrollPane scrollPane = new JScrollPane(table);
+```
+
+## Navigation Patterns
+
+### 1. Screen Transitions
+```java
+// Opening new screen
+NewScreen newScreen = new NewScreen();
+newScreen.setVisible(true);
+
+// Closing current screen
+this.setVisible(false);
+```
+
+### 2. Menu Navigation
+```java
+// Menu item action
+menuItem.addActionListener(e -> {
+    new FeatureScreen().setVisible(true);
+});
 ```
 
 ## Error Handling
 
-### 1. API Error Handling
-```javascript
+### 1. Input Validation
+```java
+private boolean validateInput() {
+    if (textField.getText().isEmpty()) {
+        showError("Field cannot be empty");
+        return false;
+    }
+    return true;
+}
+```
+
+### 2. Database Errors
+```java
 try {
-  const response = await apiCall();
-  // Handle success
-} catch (error) {
-  toast.error(error.message);
-  // Log error for monitoring
-  console.error("[API Error]:", error);
+    // Database operation
+} catch (SQLException e) {
+    showError("Database Error: " + e.getMessage());
 }
 ```
 
-### 2. Route Protection
-```javascript
-function ProtectedRoute({ children }) {
-  const { isAuthenticated, isLoading } = useUser();
-  
-  if (isLoading) return <Spinner />;
-  if (!isAuthenticated) return <Navigate to="/login" />;
-  
-  return children;
-}
-```
+## Best Practices
 
-## Performance Optimization
+### 1. Screen Layout
+- Consistent component placement
+- Proper spacing and alignment
+- Clear visual hierarchy
 
-### 1. Query Caching
-```javascript
-const { data: bookings } = useQuery({
-  queryKey: ['bookings'],
-  queryFn: getBookings,
-  staleTime: 1000 * 60 * 5, // 5 minutes
-  cacheTime: 1000 * 60 * 15 // 15 minutes
-});
-```
+### 2. User Feedback
+- Immediate response to actions
+- Clear error messages
+- Operation success confirmation
 
-### 2. Route-based Code Splitting
-```javascript
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const Bookings = lazy(() => import('./pages/Bookings'));
-const Settings = lazy(() => import('./pages/Settings'));
-```
+### 3. Navigation
+- Intuitive menu structure
+- Easy access to common functions
+- Clear return paths
 
-## Development Guidelines
+## Usability Guidelines
 
-### 1. Adding New Routes
-1. Create page component in `pages` directory
-2. Add route definition in `App.jsx`
-3. Update navigation menu
-4. Implement necessary API endpoints
+### 1. Form Design
+- Logical field order
+- Required field indication
+- Clear validation messages
 
-### 2. API Integration
-1. Create API function in appropriate service file
-2. Create custom hook for data management
-3. Implement error handling
-4. Add loading states and optimistic updates
+### 2. Error Prevention
+- Input format hints
+- Confirmation dialogs
+- Clear action buttons
 
-### 3. Form Implementation
-1. Use React Hook Form for form state
-2. Implement proper validation
-3. Show loading states during submission
-4. Handle success and error cases
+### 3. Performance
+- Quick screen loading
+- Responsive interface
+- Efficient data retrieval
 
-## Monitoring and Analytics
+## Testing Procedures
 
-### 1. Error Tracking
-```javascript
-window.addEventListener('error', (event) => {
-  // Log error to monitoring service
-  logError({
-    message: event.message,
-    stack: event.error?.stack,
-    location: window.location.href
-  });
-});
-```
+### 1. Interface Testing
+- Component functionality
+- Navigation flow
+- Error handling
+
+### 2. Usability Testing
+- Task completion
+- Error recovery
+- User satisfaction
+
+## Maintenance
+
+### 1. UI Updates
+- Component consistency
+- Style guide adherence
+- Regular review
 
 ### 2. Performance Monitoring
-- Route change timing
-- API response times
-- Component render performance
+- Screen load times
+- Response times
+- Resource usage
 
----
+- Protected routes
+- Role-based access
+- Secure token handling
 
-This documentation is maintained alongside the application code. For specific implementation details, refer to the source files in the respective directories.
+### Data Protection
+
+- Input sanitization
+- HTTPS encryption
+- Secure API calls
