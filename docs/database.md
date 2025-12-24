@@ -1,27 +1,39 @@
-# Database Documentation
+# Database Design
 
-## Overview
-The Airline Management System uses MySQL as its primary database management system. The database `airlinemanagementsystem` contains multiple tables to manage various aspects of airline operations.
+## Supported Databases
+The Airline Management System primarily supports MySQL (version 5.7 and above) as its database management system. The system uses JDBC for database connectivity and DbUtils for result set handling.
 
-## Database Connection
-The system uses JDBC (Java Database Connectivity) for database operations. Connection configuration:
+### Database Connection
 ```java
-URL: jdbc:mysql:///airlinemanagementsystem
-Username: root
-Password: root
-Driver: com.mysql.cj.jdbc.Driver
+// Connection configuration
+String url = "jdbc:mysql:///airline";
+String driver = "com.mysql.cj.jdbc.Driver";
+
+// Connection implementation
+public class ConnDB {
+    Connection c;
+    Statement s;
+    
+    public ConnDB() {
+        try {
+            Class.forName(driver);
+            c = DriverManager.getConnection(url);
+            s = c.createStatement();
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
 ```
 
-## Entity Relationship Diagram
+## Entity-Relationship Diagram
 ```mermaid
 erDiagram
-    PASSENGER ||--o{ RESERVATION : books
-    FLIGHT ||--o{ RESERVATION : includes
-    RESERVATION ||--o| CANCEL : results_in
     LOGIN {
         string username PK
         string password
     }
+
     PASSENGER {
         string aadhar PK
         string name
@@ -30,196 +42,238 @@ erDiagram
         string address
         string gender
     }
+
+    RESERVATION {
+        string pnr PK
+        string aadhar FK
+        string flight_code FK
+        string source
+        string destination
+        date journey_date
+    }
+
     FLIGHT {
         string flight_code PK
-        string flight_name
         string source
         string destination
-        integer capacity
-        decimal price
+        int capacity
+        string class_type
+        decimal fare
     }
-    RESERVATION {
-        string PNR PK
-        string ticket_id
-        string aadhar FK
-        string passenger_name
-        string nationality
-        string flight_name
-        string flight_code FK
-        string source
-        string destination
-        date departure_date
-    }
-    CANCEL {
-        string PNR PK
-        string passenger_name
-        string cancellation_no
-        string flight_code FK
-        date cancel_date
-    }
+
+    PASSENGER ||--o{ RESERVATION : has
+    FLIGHT ||--o{ RESERVATION : contains
 ```
-## Table Descriptions
 
-### 1. PASSENGER Table
-Stores customer information
-- **Primary Key**: aadhar
-- **Columns**:
-  - `name`: Passenger's full name
-  - `nationality`: Passenger's nationality
-  - `phone`: Contact number
-  - `aadhar`: Unique identification number
-  - `address`: Residential address
-  - `gender`: Passenger's gender
+## Database Schema
 
-Example:
+### 1. login Table
+Stores user authentication credentials.
+
+```sql
+CREATE TABLE login (
+    username VARCHAR(50) PRIMARY KEY,
+    password VARCHAR(50) NOT NULL
+);
+```
+
+Example Usage:
+```java
+// Authentication query
+String query = "SELECT * FROM login WHERE username='" + username + 
+               "' AND password='" + password + "'";
+ResultSet rs = stmt.executeQuery(query);
+```
+
+Fields:
+- **username**: Unique identifier for each user
+- **password**: User's authentication credential
+
+### 2. passenger Table
+Stores customer information.
+
 ```sql
 CREATE TABLE passenger (
-    name VARCHAR(100),
-    nationality VARCHAR(50),
-    phone VARCHAR(15),
     aadhar VARCHAR(12) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    nationality VARCHAR(50),
+    phone VARCHAR(20),
     address TEXT,
     gender VARCHAR(10)
 );
 ```
 
-### 2. FLIGHT Table
-Contains flight information
-- **Primary Key**: flight_code
-- **Columns**:
-  - `flight_code`: Unique flight identifier
-  - `flight_name`: Name of the flight
-  - `source`: Departure city
-  - `destination`: Arrival city
-  - `capacity`: Passenger capacity
-  - `price`: Ticket price
+Example Usage:
+```java
+// Adding new passenger
+String query = "INSERT INTO passenger VALUES ('" + aadhar + "', '" +
+               name + "', '" + nationality + "', '" + phone + "', '" +
+               address + "', '" + gender + "')";
+stmt.executeUpdate(query);
+```
 
-### 3. RESERVATION Table
-Manages booking information
-- **Primary Key**: PNR
-- **Foreign Keys**:
-  - `aadhar` references PASSENGER
-  - `flight_code` references FLIGHT
-- **Columns**:
-  - `PNR`: Unique booking reference
-  - `ticket_id`: Unique ticket identifier
-  - `passenger_name`: Name of passenger
-  - `nationality`: Passenger's nationality
-  - `flight_name`: Name of booked flight
-  - `source`: Departure city
-  - `destination`: Arrival city
-  - `departure_date`: Date of travel
+Fields:
+- **aadhar**: Unique identification number (Primary Key)
+- **name**: Full name of the passenger
+- **nationality**: Passenger's nationality
+- **phone**: Contact number
+- **address**: Residential address
+- **gender**: Gender identification
 
-Example:
+### 3. reservation Table
+Manages flight bookings.
+
 ```sql
-INSERT INTO reservation VALUES(
-    'PNR-123456',
-    'TIC-1234',
-    '123456789012',
-    'John Doe',
-    'American',
-    'Flight 101',
-    'FL101',
-    'New York',
-    'London',
-    '2025-09-23'
+CREATE TABLE reservation (
+    pnr VARCHAR(10) PRIMARY KEY,
+    aadhar VARCHAR(12),
+    flight_code VARCHAR(10),
+    source VARCHAR(50),
+    destination VARCHAR(50),
+    date DATE,
+    FOREIGN KEY (aadhar) REFERENCES passenger(aadhar)
 );
 ```
 
-### 4. CANCEL Table
-Records cancelled bookings
-- **Primary Key**: PNR
-- **Foreign Key**: flight_code references FLIGHT
-- **Columns**:
-  - `PNR`: Booking reference being cancelled
-  - `passenger_name`: Name of passenger
-  - `cancellation_no`: Unique cancellation reference
-  - `flight_code`: Associated flight code
-  - `cancel_date`: Date of cancellation
-
-### 5. LOGIN Table
-Manages user authentication
-- **Primary Key**: username
-- **Columns**:
-  - `username`: User login ID
-  - `password`: User password (hashed)
-
-## Data Operations
-
-### 1. Booking Process
-```sql
--- Check passenger exists
-SELECT * FROM passenger WHERE aadhar = ?;
-
--- Check flight availability
-SELECT * FROM flight WHERE source = ? AND destination = ?;
-
--- Create reservation
-INSERT INTO reservation VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+Example Usage:
+```java
+// Creating new reservation
+String query = "INSERT INTO reservation VALUES ('" + pnr + "', '" +
+               aadhar + "', '" + flightCode + "', '" + source + "', '" +
+               destination + "', '" + date + "')";
+stmt.executeUpdate(query);
 ```
 
-### 2. Cancellation Process
+Fields:
+- **pnr**: Passenger Name Record (Primary Key)
+- **aadhar**: Customer identifier (Foreign Key)
+- **flight_code**: Flight identifier
+- **source**: Departure location
+- **destination**: Arrival location
+- **date**: Journey date
+
+### 4. flight Table
+Contains flight information.
+
 ```sql
--- Verify reservation
-SELECT * FROM reservation WHERE PNR = ?;
-
--- Record cancellation
-INSERT INTO cancel VALUES (?, ?, ?, ?, ?);
-
--- Remove reservation
-DELETE FROM reservation WHERE PNR = ?;
+CREATE TABLE flight (
+    flight_code VARCHAR(10) PRIMARY KEY,
+    source VARCHAR(50),
+    destination VARCHAR(50),
+    capacity INT,
+    class_type VARCHAR(20),
+    fare DECIMAL(10,2)
+);
 ```
 
-## Database Maintenance
+Example Usage:
+```java
+// Retrieving flight details
+String query = "SELECT * FROM flight WHERE source='" + source + 
+               "' AND destination='" + destination + "'";
+ResultSet rs = stmt.executeQuery(query);
+```
 
-### Backup Procedures
-1. Daily automated backups
-2. Transaction log backups every hour
-3. Full database backup weekly
+Fields:
+- **flight_code**: Unique flight identifier
+- **source**: Departure airport
+- **destination**: Arrival airport
+- **capacity**: Passenger capacity
+- **class_type**: Class of service
+- **fare**: Ticket price
 
-### Performance Optimization
-1. Indexed Fields:
-   - PASSENGER.aadhar
-   - RESERVATION.PNR
-   - FLIGHT.flight_code
+## Common Database Operations
 
-2. Query Optimization:
-   - Prepared statements used for frequent queries
-   - Connection pooling implemented
-   - Proper indexing on search fields
+### 1. Customer Registration
+```java
+// Add new customer
+public void addCustomer(String name, String aadhar, String nationality) {
+    try {
+        String query = "INSERT INTO passenger VALUES (...)";
+        stmt.executeUpdate(query);
+    } catch (SQLException e) {
+        // Handle error
+    }
+}
+```
 
-### Data Security
-1. Access Control:
-   - Limited database user permissions
-   - Encrypted password storage
-   - Regular security audits
+### 2. Flight Booking
+```java
+// Create new booking
+public String bookFlight(String aadhar, String flightCode) {
+    String pnr = generatePNR();
+    try {
+        String query = "INSERT INTO reservation VALUES (...)";
+        stmt.executeUpdate(query);
+        return pnr;
+    } catch (SQLException e) {
+        // Handle error
+        return null;
+    }
+}
+```
 
-2. Data Integrity:
-   - Foreign key constraints
-   - Transaction management
-   - Data validation before insertion
+### 3. Ticket Cancellation
+```java
+// Cancel booking
+public boolean cancelBooking(String pnr) {
+    try {
+        String query = "DELETE FROM reservation WHERE pnr='" + pnr + "'";
+        int result = stmt.executeUpdate(query);
+        return result > 0;
+    } catch (SQLException e) {
+        // Handle error
+        return false;
+    }
+}
+```
 
-- `apiAuth.js`: User authentication operations
-- `apiBookings.js`: Booking management
-- `apiCabins.js`: Cabin operations
-- `apiSettings.js`: Settings management
+## Data Management
 
-### Key Operations
+### 1. Data Integrity
+- Primary Key constraints
+- Foreign Key relationships
+- NOT NULL constraints
+- Data type validation
 
-1. **Bookings**
+### 2. Error Handling
+```java
+try {
+    // Database operation
+} catch (SQLException e) {
+    JOptionPane.showMessageDialog(null, "Database Error: " + 
+                                e.getMessage());
+    logger.error("Database error", e);
+}
+```
 
-   - Create new bookings
-   - Update booking status
-   - Check availability
-   - Calculate pricing
+### 3. Transaction Management
+```java
+Connection conn = null;
+try {
+    conn = getConnection();
+    conn.setAutoCommit(false);
+    // Perform multiple operations
+    conn.commit();
+} catch (SQLException e) {
+    if (conn != null) {
+        conn.rollback();
+    }
+    // Handle error
+}
+```
 
-2. **Cabins**
+## Terms and Definitions
 
-   - Manage inventory
-   - Update pricing
-   - Handle images
+### Database Terms
+- **Primary Key (PK)**: Unique identifier for a record
+- **Foreign Key (FK)**: Reference to another table's primary key
+- **JDBC**: Java Database Connectivity API
+- **ResultSet**: Container for query results
+- **PreparedStatement**: Precompiled SQL statement
 
-3. **Users**
-   - Authentication
-   - Profile management
-   - Role-based access
+### Business Terms
+- **PNR**: Passenger Name Record
+- **Aadhar**: Unique identification number
+- **Source**: Departure location
+- **Destination**: Arrival location

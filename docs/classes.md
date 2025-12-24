@@ -1,361 +1,340 @@
-# Class Documentation
+# Classes and Components
+
+## Overview
+The Airline Management System is built using object-oriented principles in Java, with each major functionality encapsulated in its own class. All GUI classes inherit from JFrame and implement ActionListener for event handling.
 
 ## Class Hierarchy
 
+```
+javax.swing.JFrame
+    ├── Login
+    ├── Home
+    ├── AddCustomer
+    ├── BookFlight
+    ├── FlightInfo
+    ├── JourneyDetails
+    ├── Cancel
+    └── BoardingPass
+
+java.awt.event.ActionListener
+    ├── Login
+    ├── Home
+    ├── AddCustomer
+    ├── BookFlight
+    ├── FlightInfo
+    ├── JourneyDetails
+    ├── Cancel
+    └── BoardingPass
+
+Database
+    └── ConnDB
+```
+
+## Detailed Class Documentation
+
+### 1. Login Class
+Entry point for the application that handles user authentication.
+
+```java
+public class Login extends JFrame implements ActionListener {
+    private JTextField username;
+    private JPasswordField password;
+    private JButton submit, close, reset;
+    
+    // Constructor
+    public Login() {
+        // Initialize GUI components
+        setLayout(null);
+        // Set up event listeners
+        submit.addActionListener(this);
+    }
+    
+    // Event handler
+    public void actionPerformed(ActionEvent ae) {
+        if (ae.getSource() == submit) {
+            // Validate credentials
+            // Navigate to Home on success
+        }
+    }
+}
+```
+
+Key Components:
+- **Username Field**: Text input for username
+- **Password Field**: Secure password input
+- **Submit Button**: Triggers authentication
+- **Reset Button**: Clears input fields
+
+Example Usage:
+```java
+Login loginWindow = new Login();
+loginWindow.setVisible(true);
+```
+
+### 2. Home Class
+Main dashboard providing access to all system features.
+
+```java
+public class Home extends JFrame implements ActionListener {
+    private JMenuBar menuBar;
+    private JMenu flightDetails, customerDetails;
+    
+    public Home() {
+        // Set up menu bar
+        menuBar = new JMenuBar();
+        setJMenuBar(menuBar);
+        
+        // Add menu items
+        flightDetails = new JMenu("Flight Details");
+        menuBar.add(flightDetails);
+    }
+    
+    public void actionPerformed(ActionEvent ae) {
+        String action = ae.getActionCommand();
+        switch(action) {
+            case "Add Customer":
+                new AddCustomer();
+                break;
+            case "Book Flight":
+                new BookFlight();
+                break;
+            // ...
+        }
+    }
+}
+```
+
+Features:
+- Menu-based navigation
+- Access to all system modules
+- User interface management
+- Event handling
+
+### 3. AddCustomer Class
+Handles customer registration and profile management.
+
+```java
+public class AddCustomer extends JFrame implements ActionListener {
+    private JTextField name, nationality, phone, aadhar;
+    private JTextArea address;
+    private JRadioButton male, female;
+    
+    public AddCustomer() {
+        // Initialize form components
+        name = new JTextField();
+        // Set up layout
+        setLayout(null);
+        // Add components
+        add(name);
+    }
+    
+    public void actionPerformed(ActionEvent ae) {
+        // Validate input
+        if (validateInput()) {
+            // Save customer data
+            saveCustomer();
+        }
+    }
+    
+    private void saveCustomer() {
+        try {
+            ConnDB conn = new ConnDB();
+            // Execute SQL
+        } catch (Exception e) {
+            // Handle error
+        }
+    }
+}
+```
+
+Key Features:
+- Input validation
+- Database integration
+- Error handling
+- User feedback
+
+### 4. BookFlight Class
+Manages the flight booking process.
+
+```java
+public class BookFlight extends JFrame implements ActionListener {
+    private JTextField passengerDetails;
+    private JComboBox<String> flights;
+    private JDateChooser dateChooser;
+    
+    public BookFlight() {
+        // Initialize booking form
+        setLayout(null);
+        // Set up components
+        setupComponents();
+    }
+    
+    public void actionPerformed(ActionEvent ae) {
+        if (ae.getSource() == bookButton) {
+            // Process booking
+            createBooking();
+        }
+    }
+    
+    private void createBooking() {
+        // Generate PNR
+        String pnr = generatePNR();
+        // Save booking
+        saveBooking(pnr);
+    }
+}
+```
+
+Components:
+- Passenger information
+- Flight selection
+- Date picker
+- Booking confirmation
+
+### 5. ConnDB Class
+Manages database connections and operations.
+
+```java
+public class ConnDB {
+    private Connection connection;
+    private Statement statement;
+    
+    public ConnDB() {
+        try {
+            // Initialize connection
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            connection = DriverManager.getConnection("jdbc:mysql:///airline");
+            statement = connection.createStatement();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    // Database operations
+    public ResultSet executeQuery(String sql) {
+        try {
+            return statement.executeQuery(sql);
+        } catch (SQLException e) {
+            // Handle error
+            return null;
+        }
+    }
+}
+```
+
+Features:
+- Connection management
+- Query execution
+- Resource cleanup
+- Error handling
+
+## Class Relationships
+
+### 1. Inheritance
+All GUI classes inherit from JFrame:
+```java
+public class Login extends JFrame { ... }
+public class Home extends JFrame { ... }
+// etc.
+```
+
+### 2. Interface Implementation
+All GUI classes implement ActionListener:
+```java
+public class Login extends JFrame implements ActionListener { ... }
+public class Home extends JFrame implements ActionListener { ... }
+// etc.
+```
+
+### 3. Composition
+GUI classes use ConnDB for database operations:
+```java
+public class BookFlight extends JFrame implements ActionListener {
+    private ConnDB dbConnection;
+    
+    public void saveBooking() {
+        dbConnection = new ConnDB();
+        // Use connection
+    }
+}
+```
+
+## UML Class Diagram
 ```mermaid
 classDiagram
-    JFrame <|-- Home
-    JFrame <|-- Login
-    JFrame <|-- AddCustomer
-    JFrame <|-- BookFlight
-    JFrame <|-- BoardingPass
-    JFrame <|-- Cancel
-    JFrame <|-- FlightInfo
-    JFrame <|-- JourneyDetails
-
-    ActionListener <|.. Home
-    ActionListener <|.. Login
-    ActionListener <|.. AddCustomer
-    ActionListener <|.. BookFlight
-    ActionListener <|.. BoardingPass
-    ActionListener <|.. Cancel
-    ActionListener <|.. JourneyDetails
-
-    ConnDB -- Home
-    ConnDB -- Login
-    ConnDB -- AddCustomer
-    ConnDB -- BookFlight
-    ConnDB -- BoardingPass
-    ConnDB -- Cancel
-    ConnDB -- FlightInfo
-    ConnDB -- JourneyDetails
-
     class JFrame {
+        <<Abstract>>
         +setLayout()
         +setVisible()
-        +setSize()
-        +setLocation()
+        +add()
     }
-
+    
     class ActionListener {
+        <<Interface>>
         +actionPerformed(ActionEvent)
     }
-
-    class ConnDB {
-        -Connection c
-        -Statement s
-        +ConnDB()
-    }
-
-    class Home {
-        +Home()
-        +actionPerformed(ActionEvent)
-    }
-
+    
     class Login {
         -JTextField username
         -JPasswordField password
+        -JButton submit
         +Login()
-        +actionPerformed(ActionEvent)
+        +actionPerformed()
     }
-
+    
+    class Home {
+        -JMenuBar menuBar
+        -JMenu flightDetails
+        +Home()
+        +actionPerformed()
+    }
+    
     class AddCustomer {
         -JTextField name
-        -JTextField nationality
-        -JTextField address
-        -JTextField phone
         -JTextField aadhar
-        -JRadioButton male
-        -JRadioButton female
         +AddCustomer()
-        +actionPerformed(ActionEvent)
+        +actionPerformed()
     }
-
-    class BookFlight {
-        -JTextField source
-        -JTextField destination
-        -JTextField date
-        -JComboBox flightcode
-        +BookFlight()
-        +actionPerformed(ActionEvent)
+    
+    class ConnDB {
+        -Connection connection
+        -Statement statement
+        +ConnDB()
+        +executeQuery()
     }
-
-    class BoardingPass {
-        -JTextField pnr
-        +BoardingPass()
-        +actionPerformed(ActionEvent)
-    }
-
-    class Cancel {
-        -JTextField pnr
-        +Cancel()
-        +actionPerformed(ActionEvent)
-    }
-
-    class FlightInfo {
-        -JTable table
-        +FlightInfo()
-        -createTable()
-    }
-
-    class JourneyDetails {
-        -JTextField pnr
-        +JourneyDetails()
-        +actionPerformed(ActionEvent)
-    }
-```
-## Class Descriptions
-
-### 1. ConnDB
-**Purpose**: Database connection management class
-- Establishes and manages MySQL database connections
-- Provides connection and statement objects to other classes
-- Implements singleton pattern for connection management
-
-**Key Methods**:
-```java
-public ConnDB() {
-    // Initializes database connection
-    // Loads JDBC driver
-    // Creates statement object
-}
+    
+    JFrame <|-- Login
+    JFrame <|-- Home
+    JFrame <|-- AddCustomer
+    ActionListener <|.. Login
+    ActionListener <|.. Home
+    ActionListener <|.. AddCustomer
+    Login --> ConnDB
+    Home --> ConnDB
+    AddCustomer --> ConnDB
 ```
 
-### 2. Home
-**Purpose**: Main dashboard interface
-- Provides navigation to all system features
-- Centralizes access to different operations
-- Implements menu-based navigation
+## Terms and Definitions
 
-**Key Features**:
-- User interface components for all main functions
-- Event handling for navigation
-- Visual feedback for user actions
+### GUI Components
+- **JFrame**: Main window container
+- **JTextField**: Text input field
+- **JButton**: Clickable button
+- **JMenuBar**: Menu container
+- **JPanel**: Component container
 
-### 3. Login
-**Purpose**: User authentication interface
-- Handles user login process
-- Validates credentials against database
-- Manages access control
+### Event Handling
+- **ActionListener**: Event handling interface
+- **ActionEvent**: User action event
+- **EventObject**: Base class for events
 
-**Key Components**:
-- Username and password fields
-- Login button with validation
-- Error handling for invalid credentials
+### Database
+- **Connection**: Database connection
+- **Statement**: SQL statement
+- **ResultSet**: Query results
+- **SQLException**: Database error
 
-### 4. AddCustomer
-**Purpose**: Customer registration interface
-- Collects and validates customer information
-- Stores customer data in database
-- Handles form validation
-
-**Key Fields**:
-```java
-// Form Fields
-JTextField name;        // Customer name
-JTextField nationality; // Customer nationality
-JTextField address;     // Customer address
-JTextField phone;       // Contact number
-JTextField aadhar;      // ID number
-JRadioButton gender;    // Gender selection
-```
-
-### 5. BookFlight
-**Purpose**: Flight booking interface
-- Manages flight reservations
-- Validates booking information
-- Generates booking references
-
-**Key Operations**:
-- Flight search and selection
-- Passenger information verification
-- Booking confirmation
-- PNR generation
-
-### 6. BoardingPass
-**Purpose**: Boarding pass generation
-- Creates boarding passes for confirmed bookings
-- Retrieves booking information
-- Formats travel documents
-
-**Key Features**:
-- PNR validation
-- Passenger details display
-- Boarding pass printing
-
-### 7. Cancel
-**Purpose**: Booking cancellation interface
-- Processes booking cancellations
-- Updates reservation records
-- Handles refund information
-
-**Key Steps**:
-1. PNR validation
-2. Booking verification
-3. Cancellation processing
-4. Database update
-
-### 8. FlightInfo
-**Purpose**: Flight information display
-- Shows available flights
-- Displays flight schedules
-- Presents pricing information
-
-**Components**:
-- JTable for flight listing
-- Search and filter options
-- Sorting capabilities
-
-### 9. JourneyDetails
-**Purpose**: Travel information interface
-- Displays booking details
-- Shows itinerary information
-- Presents travel schedule
-
-**Key Methods**:
-```java
-public void actionPerformed(ActionEvent ae) {
-    // Handles user interactions
-    // Retrieves journey information
-    // Updates display
-}
-```
-
-## Common Patterns
-
-### 1. GUI Components
-All interface classes:
-- Extend `JFrame` for window management
-- Implement `ActionListener` for event handling
-- Use consistent layout patterns
-
-### 2. Database Operations
-Standard pattern for database operations:
-```java
-ConnDB conn = new ConnDB();
-String query = "SELECT/INSERT/UPDATE...";
-ResultSet rs = conn.s.executeQuery(query);
-// Process results
-```
-
-### 3. Event Handling
-Consistent event handling pattern:
-```java
-public void actionPerformed(ActionEvent ae) {
-    if (ae.getSource() == buttonName) {
-        // Handle specific button click
-    }
-}
-```
-
-## Best Practices
-
-### 1. Error Handling
-```java
-try {
-    // Database operation
-} catch (Exception e) {
-    e.printStackTrace();
-    // User-friendly error message
-}
-```
-
-### 2. Input Validation
-```java
-private boolean validateInput() {
-    // Check required fields
-    // Validate data formats
-    // Return validation status
-}
-```
-
-### 3. Resource Management
-```java
-// Proper resource cleanup
-finally {
-    if (rs != null) rs.close();
-    if (stmt != null) stmt.close();
-}
-```
-
-## Dependencies
-
-### External Libraries
-1. Java Swing (`javax.swing.*`)
-   - GUI components
-   - Event handling
-   - Window management
-
-2. MySQL Connector (`com.mysql.cj.jdbc.Driver`)
-   - Database connectivity
-   - Query execution
-   - Result set handling
-
-### Internal Dependencies
-1. `ConnDB` used by all classes for database operations
-2. Each form class depends on related database tables
-3. Navigation flow between classes through event handling
-
-### State Management
-
-```plaintext
-useLocalStorageState
-├── Purpose: Persist state in localStorage
-└── Usage: Dark mode, user preferences
-```
-
-### Navigation
-
-```plaintext
-useMoveBack
-├── Purpose: Handle navigation history
-└── Usage: Back button functionality
-```
-
-### UI Interaction
-
-```plaintext
-useOutsideClick
-├── Purpose: Detect clicks outside elements
-└── Usage: Modal closing, dropdown menus
-```
-
-## Plain English Explanations
-
-### For Developers
-
-1. **Component Organization**
-
-   - Components are grouped by feature
-   - Each feature has its own hooks and utilities
-   - UI components are shared across features
-
-2. **State Management**
-
-   - Local state for component-specific data
-   - Context for global state
-   - Custom hooks for complex logic
-
-3. **Data Flow**
-   - Components use hooks for data operations
-   - Services handle API communication
-   - Context provides global state access
-
-### For Non-Technical Users
-
-1. **User Interface**
-
-   - Clear navigation structure
-   - Consistent design patterns
-   - Intuitive form handling
-
-2. **Features**
-
-   - Straightforward booking management
-   - Easy cabin administration
-   - Simple user settings
-
-3. **Data Handling**
-   - Automatic data saving
-   - Real-time updates
-   - Secure information storage
+### Business Objects
+- **PNR**: Booking reference
+- **Aadhar**: ID number
+- **Flight Code**: Flight identifier

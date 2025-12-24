@@ -1,314 +1,292 @@
-# User Interface Flow Documentation
+# Web Integration Documentation
 
 ## Overview
-The Airline Management System provides a desktop-based graphical user interface built using Java Swing. This document outlines the navigation flow, screen interactions, and user interface components.
+While the Airline Management System is primarily a desktop application, it includes several web-related components and features. This document outlines the current web integration points and potential future web expansions.
 
-## Screen Navigation Map
-```mermaid
-graph TD
-    Login[Login Screen] --> Home[Home Dashboard]
-    Home --> AC[Add Customer]
-    Home --> BF[Book Flight]
-    Home --> BP[Boarding Pass]
-    Home --> FI[Flight Info]
-    Home --> JD[Journey Details]
-    Home --> C[Cancel Booking]
-    
-    BF --> BP
-    BP --> JD
-    C --> JD
-```
-## Screen Descriptions
+## Current Web Features
 
-### 1. Login Screen (`Login.java`)
-Entry point for user authentication.
+### 1. Resource Loading
+The application loads resources from URLs and class paths:
 
-**Components**:
-- Username text field
-- Password field
-- Login button
-- Clear button
-
-**Flow**:
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant L as Login Screen
-    participant DB as Database
-    participant H as Home Screen
-
-    U->>L: Enter Credentials
-    L->>DB: Validate Credentials
-    alt Valid Credentials
-        DB-->>L: Success
-        L->>H: Open Home Screen
-    else Invalid Credentials
-        DB-->>L: Failure
-        L->>U: Show Error Message
-    end
-```
-
-### 2. Home Dashboard (`Home.java`)
-Central navigation hub for all system features.
-
-**Menu Options**:
-- Customer Management
-- Flight Booking
-- Flight Information
-- Journey Details
-- Cancellation
-
-**Layout**:
-```
-+------------------------+
-|      Airline Logo      |
-+------------------------+
-|   Quick Access Menu    |
-+------------------------+
-|                        |
-|    Feature Buttons     |
-|                        |
-+------------------------+
-|      Status Bar        |
-+------------------------+
-```
-
-### 3. Add Customer (`AddCustomer.java`)
-Customer registration interface.
-
-**Form Fields**:
-- Name
-- Nationality
-- Address
-- Phone
-- Aadhar (ID)
-- Gender
-
-**Workflow**:
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant F as Form
-    participant V as Validation
-    participant DB as Database
-
-    U->>F: Fill Details
-    F->>V: Validate Input
-    alt Valid Input
-        V->>DB: Save Customer
-        DB-->>F: Success Message
-    else Invalid Input
-        V->>F: Show Errors
-    end
-```
-
-### 4. Book Flight (`BookFlight.java`)
-Flight reservation interface.
-
-**Steps**:
-1. Enter passenger details
-2. Select flight
-3. Confirm booking
-4. Generate PNR
-
-**Process Flow**:
-```mermaid
-graph TD
-    A[Enter Details] --> B[Search Flights]
-    B --> C[Select Flight]
-    C --> D[Confirm Details]
-    D --> E[Process Payment]
-    E --> F[Generate PNR]
-    F --> G[Issue Boarding Pass]
-```
-
-### 5. Boarding Pass (`BoardingPass.java`)
-Travel document generation screen.
-
-**Features**:
-- PNR lookup
-- Passenger details display
-- Flight information
-- Seat assignment
-- Print functionality
-
-### 6. Flight Information (`FlightInfo.java`)
-Flight schedule and details display.
-
-**Table Columns**:
-- Flight Code
-- Source
-- Destination
-- Departure
-- Arrival
-- Price
-- Available Seats
-
-### 7. Journey Details (`JourneyDetails.java`)
-Travel itinerary information screen.
-
-**Information Display**:
-- Booking reference (PNR)
-- Passenger details
-- Flight details
-- Travel dates
-- Status
-
-### 8. Cancel Booking (`Cancel.java`)
-Reservation cancellation interface.
-
-**Process**:
-1. Enter PNR
-2. Verify booking
-3. Confirm cancellation
-4. Generate refund details
-
-## Common UI Elements
-
-### 1. Form Components
-Standard input elements used across screens:
 ```java
-// Text Fields
-JTextField textField = new JTextField(20);
-textField.setBounds(x, y, width, height);
+// Image loading from resources
+ImageIcon icon = new ImageIcon(ClassLoader.getSystemResource(
+    "airlinemanagementsystem/icons/front.jpg"
+));
 
-// Buttons
-JButton button = new JButton("Action");
-button.addActionListener(this);
-
-// Labels
-JLabel label = new JLabel("Field Name:");
+// Database connection using URL
+String dbUrl = "jdbc:mysql://localhost:3306/airline";
+Connection conn = DriverManager.getConnection(dbUrl);
 ```
 
-### 2. Dialog Boxes
-Consistent message display:
+### 2. Database Connectivity
+JDBC-based web database connection:
+
 ```java
-// Success Message
-JOptionPane.showMessageDialog(null, 
-    "Operation Successful",
-    "Success",
-    JOptionPane.INFORMATION_MESSAGE);
-
-// Error Message
-JOptionPane.showMessageDialog(null,
-    "Error Details",
-    "Error",
-    JOptionPane.ERROR_MESSAGE);
-```
-
-### 3. Tables
-Data display format:
-```java
-JTable table = new JTable(data, columnNames);
-JScrollPane scrollPane = new JScrollPane(table);
-```
-
-## Navigation Patterns
-
-### 1. Screen Transitions
-```java
-// Opening new screen
-NewScreen newScreen = new NewScreen();
-newScreen.setVisible(true);
-
-// Closing current screen
-this.setVisible(false);
-```
-
-### 2. Menu Navigation
-```java
-// Menu item action
-menuItem.addActionListener(e -> {
-    new FeatureScreen().setVisible(true);
-});
-```
-
-## Error Handling
-
-### 1. Input Validation
-```java
-private boolean validateInput() {
-    if (textField.getText().isEmpty()) {
-        showError("Field cannot be empty");
-        return false;
+public class ConnDB {
+    public ConnDB() {
+        try {
+            // Web database connection
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            String url = "jdbc:mysql://localhost:3306/airline";
+            Connection conn = DriverManager.getConnection(url);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-    return true;
 }
 ```
 
-### 2. Database Errors
-```java
-try {
-    // Database operation
-} catch (SQLException e) {
-    showError("Database Error: " + e.getMessage());
+## Future Web Integration Plans
+
+### 1. Web-Based Interface
+
+#### Login Page
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Airline Management System - Login</title>
+</head>
+<body>
+    <form action="/login" method="post">
+        <input type="text" name="username" placeholder="Username">
+        <input type="password" name="password" placeholder="Password">
+        <button type="submit">Login</button>
+    </form>
+</body>
+</html>
+```
+
+#### Dashboard Page
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AMS Dashboard</title>
+</head>
+<body>
+    <nav>
+        <a href="/flights">Flights</a>
+        <a href="/bookings">Bookings</a>
+        <a href="/customers">Customers</a>
+    </nav>
+    <!-- Dashboard content -->
+</body>
+</html>
+```
+
+### 2. RESTful API Endpoints
+
+#### Authentication
+```javascript
+// Login endpoint
+POST /api/auth/login
+{
+    "username": "string",
+    "password": "string"
+}
+
+// Response
+{
+    "token": "jwt_token",
+    "user": {
+        "id": "string",
+        "username": "string",
+        "role": "string"
+    }
 }
 ```
 
-## Best Practices
+#### Customer Management
+```javascript
+// Create customer
+POST /api/customers
+{
+    "name": "string",
+    "aadhar": "string",
+    "nationality": "string",
+    "phone": "string",
+    "address": "string",
+    "gender": "string"
+}
 
-### 1. Screen Layout
-- Consistent component placement
-- Proper spacing and alignment
-- Clear visual hierarchy
+// Get customer
+GET /api/customers/{aadhar}
 
-### 2. User Feedback
-- Immediate response to actions
-- Clear error messages
-- Operation success confirmation
+// Update customer
+PUT /api/customers/{aadhar}
 
-### 3. Navigation
-- Intuitive menu structure
-- Easy access to common functions
-- Clear return paths
+// Delete customer
+DELETE /api/customers/{aadhar}
+```
 
-## Usability Guidelines
+#### Flight Operations
+```javascript
+// Search flights
+GET /api/flights?source={source}&destination={dest}&date={date}
 
-### 1. Form Design
-- Logical field order
-- Required field indication
-- Clear validation messages
+// Book flight
+POST /api/bookings
+{
+    "aadhar": "string",
+    "flightCode": "string",
+    "date": "string"
+}
 
-### 2. Error Prevention
-- Input format hints
-- Confirmation dialogs
-- Clear action buttons
+// Cancel booking
+DELETE /api/bookings/{pnr}
+```
 
-### 3. Performance
-- Quick screen loading
-- Responsive interface
-- Efficient data retrieval
+### 3. Web Security
 
-## Testing Procedures
+#### Authentication
+```javascript
+// JWT Authentication
+const authenticate = async (req, res, next) => {
+    const token = req.headers.authorization;
+    if (!token) {
+        return res.status(401).json({ error: 'No token provided' });
+    }
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded;
+        next();
+    } catch (error) {
+        res.status(401).json({ error: 'Invalid token' });
+    }
+};
+```
 
-### 1. Interface Testing
-- Component functionality
-- Navigation flow
-- Error handling
+#### Data Validation
+```javascript
+// Input validation middleware
+const validateBooking = (req, res, next) => {
+    const { aadhar, flightCode, date } = req.body;
+    if (!aadhar || !flightCode || !date) {
+        return res.status(400).json({
+            error: 'Missing required fields'
+        });
+    }
+    next();
+};
+```
 
-### 2. Usability Testing
-- Task completion
-- Error recovery
-- User satisfaction
+## Navigation Flow
 
-## Maintenance
+### 1. User Authentication Flow
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant L as Login Page
+    participant A as Auth Service
+    participant D as Dashboard
+    
+    U->>L: Enter Credentials
+    L->>A: Validate Credentials
+    alt Valid Credentials
+        A->>D: Redirect to Dashboard
+        D->>U: Show Dashboard
+    else Invalid Credentials
+        A->>L: Show Error
+        L->>U: Display Error Message
+    end
+```
 
-### 1. UI Updates
-- Component consistency
-- Style guide adherence
-- Regular review
+### 2. Booking Flow
+```mermaid
+flowchart TD
+    A[Search Flights] --> B[Display Available Flights]
+    B --> C[Select Flight]
+    C --> D[Enter Passenger Details]
+    D --> E[Confirm Booking]
+    E --> F[Process Payment]
+    F --> G[Generate PNR]
+    G --> H[Send Confirmation]
+    
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style H fill:#9f9,stroke:#333,stroke-width:2px
+```
 
-### 2. Performance Monitoring
-- Screen load times
-- Response times
-- Resource usage
+### 3. Customer Management Flow
+```mermaid
+stateDiagram-v2
+    [*] --> CustomerList
+    CustomerList --> AddCustomer: New Customer
+    CustomerList --> EditCustomer: Edit Existing
+    AddCustomer --> ValidateDetails
+    EditCustomer --> ValidateDetails
+    ValidateDetails --> SaveChanges: Valid
+    ValidateDetails --> ShowErrors: Invalid
+    ShowErrors --> AddCustomer
+    ShowErrors --> EditCustomer
+    SaveChanges --> CustomerList
+    CustomerList --> [*]: Exit
+```
 
-- Protected routes
-- Role-based access
-- Secure token handling
+## Integration Components
 
-### Data Protection
+### 1. API Client
+```javascript
+class APIClient {
+    async login(username, password) {
+        const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            body: JSON.stringify({ username, password })
+        });
+        return response.json();
+    }
+    
+    async getFlights(params) {
+        const response = await fetch('/api/flights?' + 
+            new URLSearchParams(params));
+        return response.json();
+    }
+}
+```
 
-- Input sanitization
-- HTTPS encryption
-- Secure API calls
+### 2. Data Models
+```typescript
+interface Customer {
+    aadhar: string;
+    name: string;
+    nationality: string;
+    phone: string;
+    address: string;
+    gender: string;
+}
+
+interface Booking {
+    pnr: string;
+    aadhar: string;
+    flightCode: string;
+    date: string;
+    status: string;
+}
+```
+
+## Terms and Definitions
+
+### Web Components
+- **API**: Application Programming Interface
+- **REST**: Representational State Transfer
+- **JWT**: JSON Web Token
+- **Endpoint**: URL path for API access
+
+### HTTP Methods
+- **GET**: Retrieve data
+- **POST**: Create new data
+- **PUT**: Update existing data
+- **DELETE**: Remove data
+
+### Security Terms
+- **Authentication**: Verify user identity
+- **Authorization**: Check user permissions
+- **Token**: Security credential
+- **Validation**: Input checking
+
+### Integration Terms
+- **CORS**: Cross-Origin Resource Sharing
+- **JSON**: Data format
+- **URL**: Web address
+- **HTTP**: Web protocol

@@ -36,9 +36,9 @@
 		{
 			"id": "pointer:pointer",
 			"typeName": "pointer",
-			"x": 1262.9995532995645,
-			"y": 207.36142611472178,
-			"lastActivityTimestamp": 1758653512061,
+			"x": 1266.515920175393,
+			"y": 90.3194128508593,
+			"lastActivityTimestamp": 1761281383324,
 			"meta": {}
 		},
 		{
@@ -212,9 +212,9 @@
 			"typeName": "shape"
 		},
 		{
-			"x": -439.88117039280075,
-			"y": -49.06942940188256,
-			"z": 0.5053951031089061,
+			"x": -778.5159201753929,
+			"y": 22.680587149140706,
+			"z": 1,
 			"meta": {},
 			"id": "camera:page:page",
 			"typeName": "camera"
@@ -254,7 +254,7 @@
 							"content": [
 								{
 									"type": "text",
-									"text": "Wait fot user to feed to copilot"
+									"text": "Wait for user to feed to copilot"
 								}
 							]
 						}
@@ -480,12 +480,12 @@
 			"typeName": "shape"
 		},
 		{
-			"editingShapeId": null,
+			"editingShapeId": "shape:oc4dD-2G3WLBTQG6gAzJr",
 			"croppingShapeId": null,
 			"selectedShapeIds": [
-				"shape:vXbyF0EgmrRo4zAUu2iUk"
+				"shape:oc4dD-2G3WLBTQG6gAzJr"
 			],
-			"hoveredShapeId": "shape:SwEOtZRfp2J6hbD0gEtWH",
+			"hoveredShapeId": "shape:oc4dD-2G3WLBTQG6gAzJr",
 			"erasingShapeIds": [],
 			"hintingShapeIds": [],
 			"focusedGroupId": null,
@@ -586,7 +586,7 @@
 							"content": [
 								{
 									"type": "text",
-									"text": "Exti with errot"
+									"text": "Exit with error"
 								}
 							]
 						}
@@ -707,7 +707,7 @@
 							"content": [
 								{
 									"type": "text",
-									"text": "Generated Documntation"
+									"text": "Generated Documentation"
 								}
 							]
 						},
@@ -1009,14 +1009,11 @@
 		{
 			"followingUserId": null,
 			"opacityForNextShape": 1,
-			"stylesForNextShape": {
-				"tldraw:color": "red",
-				"tldraw:arrowKind": "arc"
-			},
+			"stylesForNextShape": {},
 			"brush": null,
 			"scribbles": [],
 			"cursor": {
-				"type": "grabbing",
+				"type": "default",
 				"rotation": 0
 			},
 			"isFocusMode": false,
@@ -1026,8 +1023,8 @@
 			"screenBounds": {
 				"x": 0,
 				"y": 0,
-				"w": 718,
-				"h": 308
+				"w": 710,
+				"h": 360
 			},
 			"insets": [
 				false,
